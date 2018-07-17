@@ -38,17 +38,178 @@ export function activate(context: ExtensionContext) {
         setFocus();
     }
 
-    function countBlockStartsAndEnds(textArray: string[]) {
-        let blockStartsCount = 0;
-        let blockEndsCount = 0;
-        for (const text of textArray) {
-            blockStartsCount += text.replace(/\s*#.*{|[^{]/g, "").length;
-            blockEndsCount += text.replace(/\s*#.*}|[^}]/g, "").length;
+    function bracketsMatch(a: string, b: string): boolean {
+        switch (a) {
+            case "(": {
+                return (b == ")");
+                break;
+            }
+            case "[": {
+                return (b == "]");
+                break;
+            }
+            case "{": {
+                return (b == "}");
+                break;
+            }
+            case ")": {
+                return (b == "(");
+                break;
+            }
+            case "]": {
+                return (b == "[");
+                break;
+            }
+            case "}": {
+                return (b == "{");
+                break;
+            }
+            default: {
+                return (false);
+            }
         }
-        return { numberBlockStarts: blockStartsCount, numberBlockEnds: blockEndsCount };
+    }
+
+    function endsInFoldable(text: string): boolean {
+        //TODO Should quotes "' be removed?
+        //TODO Should possibly check for and ignore comments itself.
+        return (0 <= text.search(/.*?\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%\S*%$/));
+    }
+
+    function checkLineForward(text: string, unmatchedOpeningBrackets: string[], unmatchedClosingBrackets: string[], isCursorLine: boolean, expandToThisLine: boolean) {
+        let inQuote = false;
+        let quoteType = "";
+        let flagAbort = false;
+        let flagFinish = false;
+        let flagComment = false;
+        let closeBraceOnCursorLine = false;
+        let expandToNextLine = false;
+        let cs = text.split('');
+        let c = '';
+        let iChar = -1;
+        while ((c = cs.shift()) && !flagFinish && !flagAbort && !flagComment) {
+            iChar++;
+            if (!inQuote && (c == "#")) {
+                flagComment = true;
+            }
+            let cRegexp = new RegExp('\\' + c);
+            if (-1 < "\"\'\`".search(cRegexp)) {
+                if (inQuote) {
+                    if (c == quoteType) {
+                        inQuote = false;
+                    }
+                } else {
+                    inQuote = true;
+                    quoteType = c;
+                }
+            } else if (!inQuote) {
+                if (-1 < "\(\[\{".search(cRegexp)) {
+                    unmatchedOpeningBrackets.push(c);    
+                } else if (-1 < "\)\]\}".search(cRegexp)) {
+                    if (0 < unmatchedOpeningBrackets.length) {
+                        if (!bracketsMatch(c, unmatchedOpeningBrackets.pop())) {
+                            flagAbort = true;
+                        }
+                    } else {
+                        unmatchedClosingBrackets.push(c);
+                        if (-1 < "\)\]".search(cRegexp)) {
+                            expandToThisLine = true;
+                        }
+                    }
+                }
+            }
+        }
+        if (inQuote) {
+            // Line either starts or ends a multi-line string, but can't be sure which
+            // without checking from start of document, so abort.
+            flagAbort = true;
+        }
+        if ((0 == unmatchedOpeningBrackets.length) && (unmatchedClosingBrackets[unmatchedClosingBrackets.length - 1] == "}")) {
+            unmatchedClosingBrackets.pop();
+            if (isCursorLine) {
+                closeBraceOnCursorLine = true;    
+            } else {
+                flagFinish = true; 
+            }
+        }
+        if (!flagFinish && expandToThisLine && endsInFoldable(text.slice(0, iChar))) {
+            expandToNextLine = true;
+        }
+        return { flagFinish: flagFinish, flagAbort: flagAbort, 
+            expandToThisLine: expandToThisLine, expandToNextLine: expandToNextLine, 
+            unmatchedOpeningBrackets: unmatchedOpeningBrackets, unmatchedClosingBrackets: unmatchedClosingBrackets, 
+            closeBraceOnCursorLine: closeBraceOnCursorLine };
+    }
+/*
+console.log(checkLineForward("a)e", [], [], false));
+console.log(checkLineForward("a(e", [], [], false));
+console.log(checkLineForward("a\"e", [], [], false));
+console.log(checkLineForward("a)e", ["("], [], false));
+console.log(checkLineForward("a}e", [], [], false));
+console.log(checkLineForward("a)}e", [], [], false));
+console.log(checkLineForward("ae", [], [], false));
+console.log(checkLineForward("ae", [], [], false));
+console.log(checkLineForward("a()e", [], [], false));
+console.log(checkLineForward("a)(e", [], [], false));
+console.log(checkLineForward("a[)e", [], [], false));
+console.log(checkLineForward("a}+", [], [], false));
+console.log(checkLineForward("a}+", [], [], true));
+console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behaviour here?
+*/
+
+    function checkLineBackward(text: string, unmatchedOpeningBrackets: string[], unmatchedClosingBrackets: string[]) {
+        let inQuote = false;
+        let quoteType = "";
+        let flagAbort = false;
+        let flagFinish = false;
+        let flagComment = false;
+        let expandToThisLine = false;
+        let cs = text.split('');
+        let c = '';
+        let iChar = -1;
+        while ((c = cs.shift()) && !flagFinish && !flagAbort && !flagComment) {
+            iChar++;
+            if (!inQuote && (c == "#")) {
+                flagComment = true;
+            }
+            let cRegexp = new RegExp('\\' + c);
+            if (-1 < "\"\'\`".search(cRegexp)) {
+                if (inQuote) {
+                    if (c == quoteType) {
+                        inQuote = false;
+                    }
+                } else {
+                    inQuote = true;
+                    quoteType = c;
+                }
+            } else if (!inQuote) {
+                if (-1 < "\(\[\{".search(cRegexp)) {
+                     if (0 < unmatchedClosingBrackets.length) {
+                        if (!bracketsMatch(c, unmatchedClosingBrackets.shift())) {
+                            flagAbort = true;
+                        }
+                    }
+                } else if (-1 < "\)\]\}".search(cRegexp)) {
+                    unmatchedClosingBrackets.unshift(c);
+                }
+            }
+        }
+        if (inQuote) {
+            // Line either starts or ends a multi-line string, but can't be sure which
+            // without checking from start of document, so abort.
+            flagAbort = true;
+        }
+        if (0 == unmatchedClosingBrackets.length) {
+            flagFinish = true; 
+        }
+        //TODO Check for and remove initial opening brackets on the same line as last matched bracket.
+        //TODO In this case, RStudio basically fails.
+        return { flagFinish: flagFinish, flagAbort: flagAbort, 
+            unmatchedOpeningBrackets: unmatchedOpeningBrackets, unmatchedClosingBrackets: unmatchedClosingBrackets };
     }
 
     function getSelection(): any {
+        console.log("hello from getSelection");
         const selection = { linesDownToMoveCursor: 0, selectedTextArray: [] };
         const { start, end } = window.activeTextEditor.selection;
         const currentDocument = window.activeTextEditor.document;
@@ -56,73 +217,89 @@ export function activate(context: ExtensionContext) {
 
         let selectedLine = currentDocument.getText(range);
         if (!selectedLine) {
-            const newStart = new Position(start.line, 0);
-            commands.executeCommand("cursorMove", { to: "wrappedLineEnd", by: "line", value: 1 });
-            const charactersOnLine = window.activeTextEditor.document.lineAt(newStart.line).text.length;
-            const newEnd = new Position(start.line, charactersOnLine);
-            selectedLine = currentDocument.getText(new Range(newStart, newEnd));
-        } else if (start.line === end.line) {
-            selection.linesDownToMoveCursor = 0;
-            selection.selectedTextArray = [currentDocument.getText(new Range(start, end))];
-            return selection;
-        } else {
-            selectedLine = currentDocument.getText(new Range(start, end));
-        }
-
-        let selectedTextArray = selectedLine.split("\n");
-        selectedTextArray = removeCommentedLines(selectedTextArray);
-
-        const blocks = countBlockStartsAndEnds(selectedTextArray);
-        if (blocks.numberBlockStarts > blocks.numberBlockEnds) {
-            let lineIndex = 1;
-            while (blocks.numberBlockStarts !== blocks.numberBlockEnds) {
-                selectedLine = currentDocument.lineAt(end.line + lineIndex).text;
-                selectedTextArray.push(selectedLine);
-
-                const thisLineBlocks = countBlockStartsAndEnds([selectedLine]);
-                blocks.numberBlockStarts += thisLineBlocks.numberBlockStarts;
-                blocks.numberBlockEnds += thisLineBlocks.numberBlockEnds;
-                lineIndex++;
+            console.log("Nothing selected");
+            // No characters selected; expand
+            //TODO Continue } %>% only if it is the first line.
+            let toLineIndex = start.line - 1;
+            let checkingLineIndex = start.line - 1;
+            let checkStatus = { unmatchedOpeningBrackets: [], unmatchedClosingBrackets: [], flagFinish: false, flagAbort: false,
+                expandToThisLine: true, expandToNextLine: false };
+            // Forwards
+            while (!checkStatus.flagFinish && !checkStatus.flagAbort) {
+                checkingLineIndex++;
+                //TODO Check not EOF. If EOF, flagFinish effectively true.
+                //TODO Use? window.activeTextEditor.document.lineAt(newStart.line) // returns a TextLine
+                //TODO Use? currentDocument.getText(new Range(start, end)) // returns a string
+                //TODO Use? currentDocument.lineAt(end.line + lineIndex).text;
+                let text = currentDocument.lineAt(checkingLineIndex).text;
+                checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, 
+                    checkingLineIndex === 0, checkStatus.expandToThisLine);
+                console.log(text);
+                console.log(checkStatus);
+                if (checkStatus.expandToNextLine) {
+                    //TODO Deal with case in which this goes beyond EOF.
+                    toLineIndex = checkingLineIndex + 1;
+                } else if (checkStatus.expandToThisLine) {
+                    toLineIndex = checkingLineIndex;
+                }
             }
-            selection.linesDownToMoveCursor = lineIndex;
-        } else if (blocks.numberBlockStarts < blocks.numberBlockEnds) {
-            let lineIndex = 1;
-            while (blocks.numberBlockStarts !== blocks.numberBlockEnds) {
-                selectedLine = currentDocument.lineAt(start.line - lineIndex).text;
-                selectedTextArray.unshift(selectedLine);
-
-                const thisLineBlocks = countBlockStartsAndEnds([selectedLine]);
-                blocks.numberBlockStarts += thisLineBlocks.numberBlockStarts;
-                blocks.numberBlockEnds += thisLineBlocks.numberBlockEnds;
-                lineIndex++;
-            }
-            selection.linesDownToMoveCursor = lineIndex;
+                //TODO Handle if there was a } on the cursor line, probably by adding a } back in to unmatchedClosingBrackets.
+        //         // Backwards
+        //         checkStatus.flagFinish = false;
+        //         let fromLineIndex = start.line;
+        //         while (!checkStatus.flagFinish && !checkStatus.flagAbort) {
+        //             fromLineIndex--;
+        //             let text = currentDocument.lineAt(fromLineIndex).text;
+        //             checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, checkingLineIndex == 0);
+        //         }
+        //         while (!checkStatus.flagAbort && !endsInFoldable(currentDocument.lineAt(fromLineIndex - 1).text)) {
+        //             fromLineIndex--;
+        //         }
+        //         if (checkStatus.flagAbort) {
+        //             selectedLine = currentDocument.getText(new Range(start, end));
+        //             selection.linesDownToMoveCursor = 1;
+        //         } else {
+        //             selection.selectedTextArray = currentDocument.getText(new Range(fromLineIndex, toLineIndex));
+        //             selection.linesDownToMoveCursor = toLineIndex - start.line;
+        //         }
+        //         //TODO return something?
+        //     } else { // Multiple characters on line selected
+        //         selection.linesDownToMoveCursor = 0;
+        //         selection.selectedTextArray = [currentDocument.getText(new Range(start, end))];
+        //         return selection;
+        //TODO When does this happen? Check that it is consistent with what has been added.
+        //TODO Remove original code below.
+            // const newStart = new Position(start.line, 0);
+            // commands.executeCommand("cursorMove", { to: "wrappedLineEnd", by: "line", value: 1 });
+            // const charactersOnLine = window.activeTextEditor.document.lineAt(newStart.line).text.length;
+            // const newEnd = new Position(start.line, charactersOnLine);
+            // selectedLine = currentDocument.getText(new Range(newStart, newEnd));
         } else {
-            selection.linesDownToMoveCursor = 1;
+            console.log("something was selected");
+            selection.selectedTextArray = currentDocument.getText(new Range(start, end));
+            //TODO In this case, DON'T expand selection.
         }
-        selection.selectedTextArray = selectedTextArray;
-
         return selection;
     }
 
     async function runSelection() {
         const selection = getSelection();
 
-        if (!rTerm) {
-            const success = createRTerm(true);
-            if (!success) { return; }
-            await delay (200); // Let RTerm warm up
-        }
-        if (selection.linesDownToMoveCursor > 0) {
-            commands.executeCommand("cursorMove", { to: "down", value: selection.linesDownToMoveCursor });
-            commands.executeCommand("cursorMove", { to: "wrappedLineEnd" });
-        }
-        for (const line of selection.selectedTextArray) {
-            if (checkForComment(line)) { continue; }
-            await delay(8); // Increase delay if RTerm can't handle speed.
-            rTerm.sendText(line);
-        }
-        setFocus();
+        // if (!rTerm) {
+        //     const success = createRTerm(true);
+        //     if (!success) { return; }
+        //     await delay (200); // Let RTerm warm up
+        // }
+        // if (selection.linesDownToMoveCursor > 0) {
+        //     commands.executeCommand("cursorMove", { to: "down", value: selection.linesDownToMoveCursor });
+        //     commands.executeCommand("cursorMove", { to: "wrappedLineEnd" });
+        // }
+        // for (const line of selection.selectedTextArray) {
+        //     if (checkForComment(line)) { continue; }
+        //     await delay(8); // Increase delay if RTerm can't handle speed.
+        //     rTerm.sendText(line);
+        // }
+        // setFocus();
     }
 
     function setFocus() {
