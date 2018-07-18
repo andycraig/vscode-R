@@ -267,7 +267,7 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
                 const newStart = new Position(start.line, 0);
                 const charactersOnLine = window.activeTextEditor.document.lineAt(toLineIndex).text.length;
                 const newEnd = new Position(toLineIndex, charactersOnLine);
-                selection.selectedTextArray = currentDocument.getText(new Range(newStart, newEnd));
+                selection.selectedTextArray = currentDocument.getText(new Range(newStart, newEnd)).split("\n");
                 selection.linesDownToMoveCursor = toLineIndex - start.line;
             }
             console.log(selection.selectedTextArray);
@@ -287,22 +287,25 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
 
     async function runSelection() {
         const selection = getSelection();
+        console.log(selection)
 
-        // if (!rTerm) {
-        //     const success = createRTerm(true);
-        //     if (!success) { return; }
-        //     await delay (200); // Let RTerm warm up
-        // }
-        // if (selection.linesDownToMoveCursor > 0) {
-        //     commands.executeCommand("cursorMove", { to: "down", value: selection.linesDownToMoveCursor });
-        //     commands.executeCommand("cursorMove", { to: "wrappedLineEnd" });
-        // }
-        // for (const line of selection.selectedTextArray) {
-        //     if (checkForComment(line)) { continue; }
-        //     await delay(8); // Increase delay if RTerm can't handle speed.
-        //     rTerm.sendText(line);
-        // }
-        // setFocus();
+        if (!rTerm) {
+            const success = createRTerm(true);
+            if (!success) { return; }
+            await delay (200); // Let RTerm warm up
+        }
+        if (selection.linesDownToMoveCursor > 0) {
+            commands.executeCommand("cursorMove", { to: "down", value: selection.linesDownToMoveCursor });
+            commands.executeCommand("cursorMove", { to: "wrappedLineEnd" });
+        }
+        for (const line of selection.selectedTextArray) {
+            console.log(line)
+            //TODO I think checkForComment no longer necessary.
+            //if (checkForComment(line)) { continue; }
+            await delay(8); // Increase delay if RTerm can't handle speed.
+            rTerm.sendText(line);
+        }
+        setFocus();
     }
 
     function setFocus() {
