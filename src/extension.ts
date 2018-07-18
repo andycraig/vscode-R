@@ -71,10 +71,9 @@ export function activate(context: ExtensionContext) {
     }
 
     function endsInFoldable(text: string): boolean {
+        //TODO 'Foldable' is probably not accurate.
         //TODO Should quotes "' be removed?
-        //TODO Currently assumes that there are no comments.
-        //TODO Should possibly check for and ignore comments itself.
-        return (0 <= text.search(/.*?(\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%\S*%)\s*$/));
+        return (0 <= text.search(/^([^\#]*)(\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%\S*%)(\s*|\s*\#.*)$/));
     }
 
     function checkLineForward(text: string, unmatchedOpeningBrackets: string[], unmatchedClosingBrackets: string[], alreadyExpandingToThisLine: boolean) {
@@ -217,7 +216,7 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
             console.log("Nothing selected");
             // No characters selected; expand
             //TODO Continue } %>% only if it is the first line.
-            let toLineIndex = start.line - 1;
+            let toLineIndex = start.line;
             let checkingLineIndex = start.line - 1;
             let checkStatus = { unmatchedOpeningBrackets: [], unmatchedClosingBrackets: [], flagFinish: false, flagAbort: false,
                 expandToThisLine: true, expandToNextLine: false };
@@ -231,8 +230,6 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
                 let text = currentDocument.lineAt(checkingLineIndex).text;
                 checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, 
                     checkStatus.expandToThisLine);
-                console.log(text);
-                console.log(checkStatus);
                 if (checkStatus.expandToNextLine) {
                     //TODO Deal with case in which this goes beyond EOF.
                     toLineIndex = checkingLineIndex + 1;
@@ -244,7 +241,11 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
             console.log("BACKWARDS");
             checkStatus.flagFinish = 0 < checkStatus.unmatchedClosingBrackets.length;
             let fromLineIndex = start.line;
+            console.log(fromLineIndex);
+            console.log(checkStatus.flagFinish)
+            console.log(checkStatus.flagAbort)
             while (!checkStatus.flagFinish && !checkStatus.flagAbort) {
+                console.log("in while")
                 fromLineIndex--;
                 let text = currentDocument.lineAt(fromLineIndex).text;
                 console.log("Checking: " + text);
@@ -252,29 +253,30 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
                 checkStatus = checkLineBackward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets);
                 console.log(checkStatus);
             }
-        //         //TODO endsInFoldable on next line probably doesn't strip comments.
-        //         while (!checkStatus.flagAbort && !endsInFoldable(currentDocument.lineAt(fromLineIndex - 1).text)) {
-        //             fromLineIndex--;
-        //         }
-        //         if (checkStatus.flagAbort) {
-        //             selectedLine = currentDocument.getText(new Range(start, end));
-        //             selection.linesDownToMoveCursor = 1;
-        //         } else {
-        //             selection.selectedTextArray = currentDocument.getText(new Range(fromLineIndex, toLineIndex));
-        //             selection.linesDownToMoveCursor = toLineIndex - start.line;
-        //         }
-        //         //TODO return something?
-        //     } else { // Multiple characters on line selected
-        //         selection.linesDownToMoveCursor = 0;
-        //         selection.selectedTextArray = [currentDocument.getText(new Range(start, end))];
-        //         return selection;
-        //TODO When does this happen? Check that it is consistent with what has been added.
-        //TODO Remove original code below.
-            // const newStart = new Position(start.line, 0);
-            // commands.executeCommand("cursorMove", { to: "wrappedLineEnd", by: "line", value: 1 });
-            // const charactersOnLine = window.activeTextEditor.document.lineAt(newStart.line).text.length;
-            // const newEnd = new Position(start.line, charactersOnLine);
-            // selectedLine = currentDocument.getText(new Range(newStart, newEnd));
+            console.log("after BACKWARD")
+            while (!checkStatus.flagAbort && endsInFoldable(currentDocument.lineAt(fromLineIndex - 1).text)) {
+                fromLineIndex--;
+            }
+            console.log("after after BACKWARD")
+            if (checkStatus.flagAbort) {
+                selectedLine = currentDocument.getText(new Range(start, end));
+                selection.linesDownToMoveCursor = 1;
+            } else {
+                console.log("from" + fromLineIndex)
+                console.log("to " + toLineIndex)
+                const newStart = new Position(start.line, 0);
+                const charactersOnLine = window.activeTextEditor.document.lineAt(toLineIndex).text.length;
+                const newEnd = new Position(toLineIndex, charactersOnLine);
+                selection.selectedTextArray = currentDocument.getText(new Range(newStart, newEnd));
+                selection.linesDownToMoveCursor = toLineIndex - start.line;
+            }
+            console.log(selection.selectedTextArray);
+            //         //TODO return something?
+            //     } else { // Multiple characters on line selected
+            //         selection.linesDownToMoveCursor = 0;
+            //         selection.selectedTextArray = [currentDocument.getText(new Range(start, end))];
+            //         return selection;
+            //TODO When does this happen? Check that it is consistent with what has been added.
         } else {
             console.log("something was selected");
             selection.selectedTextArray = currentDocument.getText(new Range(start, end));
