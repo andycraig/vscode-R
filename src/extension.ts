@@ -72,17 +72,19 @@ export function activate(context: ExtensionContext) {
 
     function endsInFoldable(text: string): boolean {
         //TODO Should quotes "' be removed?
+        //TODO Currently assumes that there are no comments.
         //TODO Should possibly check for and ignore comments itself.
-        return (0 <= text.search(/.*?\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%\S*%$/));
+        return (0 <= text.search(/.*?(\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%\S*%)\s*$/));
     }
 
-    function checkLineForward(text: string, unmatchedOpeningBrackets: string[], unmatchedClosingBrackets: string[], isCursorLine: boolean, expandToThisLine: boolean) {
+    function checkLineForward(text: string, unmatchedOpeningBrackets: string[], unmatchedClosingBrackets: string[], alreadyExpandingToThisLine: boolean) {
         let inQuote = false;
         let quoteType = "";
         let flagAbort = false;
         let flagFinish = false;
         let flagComment = false;
         let closeBraceOnCursorLine = false;
+        let expandToThisLine = false;
         let expandToNextLine = false;
         let cs = text.split('');
         let c = '';
@@ -124,15 +126,10 @@ export function activate(context: ExtensionContext) {
             // without checking from start of document, so abort.
             flagAbort = true;
         }
-        if ((0 == unmatchedOpeningBrackets.length) && (unmatchedClosingBrackets[unmatchedClosingBrackets.length - 1] == "}")) {
-            unmatchedClosingBrackets.pop();
-            if (isCursorLine) {
-                closeBraceOnCursorLine = true;    
-            } else {
-                flagFinish = true; 
-            }
+        if (!alreadyExpandingToThisLine && (0 == unmatchedOpeningBrackets.length) && (unmatchedClosingBrackets[unmatchedClosingBrackets.length - 1] == "}")) {
+            flagFinish = true; 
         }
-        if (!flagFinish && expandToThisLine && endsInFoldable(text.slice(0, iChar))) {
+        if (!flagFinish && alreadyExpandingToThisLine && endsInFoldable(text.slice(0, iChar + 1))) {
             expandToNextLine = true;
         }
         return { flagFinish: flagFinish, flagAbort: flagAbort, 
@@ -233,7 +230,7 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
                 //TODO Use? currentDocument.lineAt(end.line + lineIndex).text;
                 let text = currentDocument.lineAt(checkingLineIndex).text;
                 checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, 
-                    checkingLineIndex === 0, checkStatus.expandToThisLine);
+                    checkStatus.expandToThisLine);
                 console.log(text);
                 console.log(checkStatus);
                 if (checkStatus.expandToNextLine) {
@@ -252,6 +249,7 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
         //             let text = currentDocument.lineAt(fromLineIndex).text;
         //             checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, checkingLineIndex == 0);
         //         }
+        //         //TODO endsInFoldable on next line probably doesn't strip comments.
         //         while (!checkStatus.flagAbort && !endsInFoldable(currentDocument.lineAt(fromLineIndex - 1).text)) {
         //             fromLineIndex--;
         //         }
