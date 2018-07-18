@@ -240,15 +240,18 @@ console.log(checkLineForward("a)}b", ["("], [], true)); // What is correct behav
                     toLineIndex = checkingLineIndex;
                 }
             }
-                //TODO Handle if there was a } on the cursor line, probably by adding a } back in to unmatchedClosingBrackets.
-        //         // Backwards
-        //         checkStatus.flagFinish = false;
-        //         let fromLineIndex = start.line;
-        //         while (!checkStatus.flagFinish && !checkStatus.flagAbort) {
-        //             fromLineIndex--;
-        //             let text = currentDocument.lineAt(fromLineIndex).text;
-        //             checkStatus = checkLineForward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets, checkingLineIndex == 0);
-        //         }
+            // Backwards
+            console.log("BACKWARDS");
+            checkStatus.flagFinish = 0 < checkStatus.unmatchedClosingBrackets.length;
+            let fromLineIndex = start.line;
+            while (!checkStatus.flagFinish && !checkStatus.flagAbort) {
+                fromLineIndex--;
+                let text = currentDocument.lineAt(fromLineIndex).text;
+                console.log("Checking: " + text);
+                //TODO Set alreadyExpandingToThisLine appropriately.
+                checkStatus = checkLineBackward(text, checkStatus.unmatchedOpeningBrackets, checkStatus.unmatchedClosingBrackets);
+                console.log(checkStatus);
+            }
         //         //TODO endsInFoldable on next line probably doesn't strip comments.
         //         while (!checkStatus.flagAbort && !endsInFoldable(currentDocument.lineAt(fromLineIndex - 1).text)) {
         //             fromLineIndex--;
