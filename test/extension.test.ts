@@ -15,12 +15,6 @@ import { extend, cleanLine, isEndOfCodeLine } from "../src/extendSelection";
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", () => {
 
-    // Defines a Mocha unit test
-    test("Something 1", () => {
-        assert.equal(-1, [1, 2, 3].indexOf(5));
-        assert.equal(-1, [1, 2, 3].indexOf(0));
-    });
-
     test("Sending well-formed blocks to console", () => {
         let doc1 = `
         function (x) {
