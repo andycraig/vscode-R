@@ -105,8 +105,6 @@ suite("Extension Tests", () => {
         assert.equal(extend(1, f4, 6).startLine, 1);
         assert.equal(extend(1, f4, 6).endLine, 6);
         assert.equal(extend(2, f4, 6).startLine, 2);
-        assert.equal(extend(1, f4, 6).endLine, 6);
-        assert.equal(extend(2, f4, 6).startLine, 2);
         assert.equal(extend(2, f4, 6).endLine, 2);
         assert.equal(extend(3, f4, 6).startLine, 1);
         assert.equal(extend(3, f4, 6).endLine, 6);

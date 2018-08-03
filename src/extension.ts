@@ -60,7 +60,7 @@ export function activate(context: ExtensionContext) {
             const extended = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
             const charactersOnLine = window.activeTextEditor.document.lineAt(extended.endLine).text.length;
             const newStart = new Position(extended.startLine, 0);
-            const newEnd = new Position(start.line, charactersOnLine);
+            const newEnd = new Position(extended.endLine, charactersOnLine);
             selection.linesDownToMoveCursor = 1 + extended.endLine - start.line;
             selectedLine = currentDocument.getText(new Range(newStart, newEnd));
         } else if (start.line === end.line) {
