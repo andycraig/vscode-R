@@ -1,20 +1,10 @@
-import { REFUSED } from "dns";
-import { endianness } from "os";
-
-export class Posn {
-    line: number;
-    character: number;
-    constructor(_line: number, _char: number) {
-        this.line = _line;
-        this.character = _char;
-    }
-}
+import { Position } from "vscode";
 
 class NextChar {
     char: string;
-    pos: Posn;
+    pos: Position;
     endOfCodeLine: boolean;
-    constructor(_char: string, _pos: Posn, _endOfCodeLine: boolean) {
+    constructor(_char: string, _pos: Position, _endOfCodeLine: boolean) {
         this.char = _char;
         this.pos = _pos;
         this.endOfCodeLine = _endOfCodeLine;
@@ -80,7 +70,7 @@ export function cleanLine(text: string) {
  * @param q A Position to compare.
  * @param lookingForward If true, Positions closer to the end of the document are 'further'.
  */
-function getExtremalPos(p: Posn, q: Posn, lookingForward: boolean) {
+function getExtremalPos(p: Position, q: Position, lookingForward: boolean) {
     if (lookingForward) {
         if (p.line > q.line) return (p);
         else if (p.line < q.line) return (q);
@@ -113,19 +103,19 @@ export function isEndOfCodeLine(text: string) {
  * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
  * @param lineCount The number of lines in the document.
  */
-export function getNextCharAndPos(p: Posn, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount): NextChar {
+export function getNextCharAndPos(p: Position, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount): NextChar {
     let s = getLine(p.line);
     let nextChar = "";
     let nextPos = null;
     let endOfCodeLine = false;
     if (lookingForward) {
         if (p.character != s.length) {
-            nextPos = new Posn(p.line, p.character + 1);
+            nextPos = new Position(p.line, p.character + 1);
         } else if (p.line < lineCount) {
-            nextPos = new Posn(p.line + 1, -1);
+            nextPos = new Position(p.line + 1, -1);
         } else {
             // At end of document. Return same character.
-            nextPos = new Posn(p.line, p.character);
+            nextPos = new Position(p.line, p.character);
         }
         let nextLine: string = getLine(nextPos.line);
         if (nextPos.character == nextLine.length) {
@@ -135,12 +125,12 @@ export function getNextCharAndPos(p: Posn, lookingForward: boolean, getLine: (nu
         }
     } else {
         if (p.character != -1) {
-            nextPos = new Posn(p.line, p.character - 1);
+            nextPos = new Position(p.line, p.character - 1);
         } else if (p.line > 0) { 
-            nextPos = new Posn(p.line - 1, getLine(p.line - 1).length - 1);
+            nextPos = new Position(p.line - 1, getLine(p.line - 1).length - 1);
         } else {
             // At start of document. Return same charater.
-            nextPos = new Posn(p.line, p.character);
+            nextPos = new Position(p.line, p.character);
         }
         if (nextPos.character == -1) {
             if ((nextPos.line <= 0) || getIsEndOfCodeLine(nextPos.line - 1)) {
@@ -168,7 +158,7 @@ export function getNextCharAndPos(p: Posn, lookingForward: boolean, getLine: (nu
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function findMatchingBracket(b: string, pos: Posn, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
+export function findMatchingBracket(b: string, pos: Position, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
     let flagAbort = false;
     let unmatchedBrackets: string[] = [];
     let nextPos = pos;
@@ -203,7 +193,7 @@ export function findMatchingBracket(b: string, pos: Posn, getLine: (number) => s
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function processRestOfExtendedLine(pos: Posn, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number): NextChar {
+export function processRestOfExtendedLine(pos: Position, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number): NextChar {
     let result = getNextCharAndPos(pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
     while (!result.endOfCodeLine && !(isBracket(result.char, true) || isBracket(result.char, false))) {
         result = getNextCharAndPos(result.pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
@@ -226,7 +216,7 @@ export function extend(line: number, getLine: (number) => string, lineCount: num
     let lookingForward = true;
     // poss[1] is the furthest point reached looking forward from the current line,
     // and poss[0] is the furthest point reached looking backward from the current line.
-    let poss = { 0: new Posn(line, 0), 1: new Posn(line, -1) };
+    let poss = { 0: new Position(line, 0), 1: new Position(line, -1) };
     let flagFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     let flagAbort = false;
     // Check characters on current line. If a bracket, extend to the corresponding
