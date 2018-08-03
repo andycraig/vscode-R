@@ -5,6 +5,7 @@ import { commands, ExtensionContext, languages, Position, Range, window, workspa
 import { createGitignore } from "./rGitignore";
 import { createRTerm, deleteTerminal, rTerm } from "./rTerminal";
 import { checkForSpecialCharacters, checkIfFileExists, config, delay } from "./util";
+import { extend } from "./extendSelection";
 
 import fs = require("fs-extra");
 
@@ -56,10 +57,10 @@ export function activate(context: ExtensionContext) {
 
         let selectedLine = currentDocument.getText(range);
         if (!selectedLine) {
-            const newStart = new Position(start.line, 0);
-            commands.executeCommand("cursorMove", { to: "wrappedLineEnd", by: "line", value: 1 });
-            const charactersOnLine = window.activeTextEditor.document.lineAt(newStart.line).text.length;
-            const newEnd = new Position(start.line, charactersOnLine);
+            const extended = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
+            const newStart = extended.startLine;
+            const newEnd = extended.endLine;
+            selection.linesDownToMoveCursor = 1 + extended.endLine - start.line;
             selectedLine = currentDocument.getText(new Range(newStart, newEnd));
         } else if (start.line === end.line) {
             selection.linesDownToMoveCursor = 0;
@@ -70,37 +71,7 @@ export function activate(context: ExtensionContext) {
         }
 
         let selectedTextArray = selectedLine.split("\n");
-        selectedTextArray = removeCommentedLines(selectedTextArray);
-
-        const blocks = countBlockStartsAndEnds(selectedTextArray);
-        if (blocks.numberBlockStarts > blocks.numberBlockEnds) {
-            let lineIndex = 1;
-            while (blocks.numberBlockStarts !== blocks.numberBlockEnds) {
-                selectedLine = currentDocument.lineAt(end.line + lineIndex).text;
-                selectedTextArray.push(selectedLine);
-
-                const thisLineBlocks = countBlockStartsAndEnds([selectedLine]);
-                blocks.numberBlockStarts += thisLineBlocks.numberBlockStarts;
-                blocks.numberBlockEnds += thisLineBlocks.numberBlockEnds;
-                lineIndex++;
-            }
-            selection.linesDownToMoveCursor = lineIndex;
-        } else if (blocks.numberBlockStarts < blocks.numberBlockEnds) {
-            let lineIndex = 1;
-            while (blocks.numberBlockStarts !== blocks.numberBlockEnds) {
-                selectedLine = currentDocument.lineAt(start.line - lineIndex).text;
-                selectedTextArray.unshift(selectedLine);
-
-                const thisLineBlocks = countBlockStartsAndEnds([selectedLine]);
-                blocks.numberBlockStarts += thisLineBlocks.numberBlockStarts;
-                blocks.numberBlockEnds += thisLineBlocks.numberBlockEnds;
-                lineIndex++;
-            }
-            selection.linesDownToMoveCursor = lineIndex;
-        } else {
-            selection.linesDownToMoveCursor = 1;
-        }
-        selection.selectedTextArray = selectedTextArray;
+        selection.selectedTextArray = removeCommentedLines(selectedTextArray);
 
         return selection;
     }
