@@ -58,10 +58,10 @@ export function activate(context: ExtensionContext) {
         let selectedLine = currentDocument.getText(range);
         if (!selectedLine) {
             const extended = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
-            const newStart = extended.startLine;
+            const newStart = new Position(extended.startLine, 0);
             const newEnd = extended.endLine;
             selection.linesDownToMoveCursor = 1 + extended.endLine - start.line;
-            selectedLine = currentDocument.getText(new Range(newStart, newEnd));
+            selectedLine = [currentDocument.getText(new Range(newStart, newEnd))];
         } else if (start.line === end.line) {
             selection.linesDownToMoveCursor = 0;
             selection.selectedTextArray = [currentDocument.getText(new Range(start, end))];
