@@ -1,5 +1,5 @@
 /**
- * Like vscode's Position, but allows negative values.
+ * Like vscode's Position class, but allows negative values.
  */
 class PositionNeg {
     line: number;
@@ -21,6 +21,9 @@ class NextChar {
     }
 }
  
+/**
+ * Class to hold lines that have been fetched from the document after they have been preprocessed.
+ */
 class LineCache {
     lineCache: Map<number, string>;
     endOfCodeLineCache: Map<number, boolean>;
@@ -189,6 +192,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
         let atStartOfFile = !lookingForward && (nextPos.line == 0) && (result.endOfCodeLine);
         let atEOF = lookingForward && (nextPos.line == lineCount) && (result.endOfCodeLine);
         if (atStartOfFile || atEOF) {
+            // Have hit the start or end of the file without finding the matching bracket.
             flagAbort = true;
         }
     }
@@ -214,17 +218,22 @@ export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) =>
 /**
  * Given a line number, determines the first and last lines required to 
  * include all the matching brackets and all the 'extended lines' (single code lines
- * split over multiple lines, or lines joined by pipe operators) from that line.
+ * split into multiple lines each ending in an operator) from that line.
  * 
  * For example, say these are some lines of an R script:
- * 
+ *
  * library(magrittr)  # Line 1
  * list(x = 1,        # Line 2
  *      y = 2) %>%    # Line 3  
  *      print()       # Line 4
+ * print(-1)          # Line 5
  * 
  * Say we start from line 3. We will proceed forward, then hit the ')'. We will then look backward
- * for the matching bracket. We find that on line 2.
+ * for the matching '('. We find that on line 2. We then continue back along line 2, until 
+ * we hit the start. At that point, we continue from the furthest forward point reached so far:
+ * the '(' on line 3. We continue forward, and find that the line continues on to line 4 because it 
+ * ends in an operator ('%>%'). We therefore check the rest of line 4, and find that it ends. 
+ * So, the start line returned is 1 and the end line is 4.
  * @param line The line of the document at which to start.
  * @param getLine A function that returns the string at the given line.
  * @param lineCount The number of lines in the document.
