@@ -113,7 +113,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
     if (lookingForward) {
         if (p.character != s.length) {
             nextPos = new PositionNeg(p.line, p.character + 1);
-        } else if (p.line < lineCount) {
+        } else if (p.line < (lineCount - 1)) {
             nextPos = new PositionNeg(p.line + 1, -1);
         } else {
             // At end of document. Return same character.
@@ -121,7 +121,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
         }
         let nextLine: string = getLine(nextPos.line);
         if (nextPos.character == nextLine.length) {
-            if ((nextPos.line == lineCount) || getIsEndOfCodeLine(nextPos.line)) {
+            if ((nextPos.line == (lineCount - 1)) || getIsEndOfCodeLine(nextPos.line)) {
                 endOfCodeLine = true;
             }
         }
@@ -179,7 +179,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
             }
         }
         let atStartOfFile = !lookingForward && (nextPos.line == 0) && (endOfCodeLine);
-        let atEOF = lookingForward && (nextPos.line == lineCount) && (endOfCodeLine);
+        let atEOF = lookingForward && (nextPos.line == (lineCount - 1)) && (endOfCodeLine);
         if (atStartOfFile || atEOF) {
             // Have hit the start or end of the file without finding the matching bracket.
             flagAbort = true;
