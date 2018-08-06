@@ -116,23 +116,23 @@ suite("Extension Tests", () => {
 
     test("Sending large code example to console", () => {
         let doc9 = `
-        if (TRUE) {              #  1. RStudio sends lines 1-17; VSCode-R sends 1-17
-                                 #  2. RStudio sends lines 2-4; VSCode-R sends 2-4
-          a = data.frame(x = 2,  #  3. RStudio sends lines 2-4; VSCode-R sends 3-4
-            y = 3)               #  4. RStudio sends lines 2-4; VSCode-R sends 3-4
-          print(                 #  5. RStudio sends lines 5-15; VSCode-R sends 5-15
-            a[                   #  6. RStudio sends lines 5-15; VSCode-R sends 6-14
-              if (TRUE) {        #  7. RStudio sends lines 7-13; VSCode-R sends 7-13
-                {                #  8. RStudio sends lines 8-12; VSCode-R sends 8-12
-                  (              #  9. RStudio sends lines 9-11; VSCode-R sends 9-11
-                    1            # 10. RStudio sends lines 9-11; VSCode-R sends 10
-                  )              # 11. RStudio sends lines 9-11; VSCode-R sends 9-11
-                }                # 12. RStudio sends lines 8-12; VSCode-R sends 8-12
-              }                  # 13. RStudio sends lines 5-15; VSCode-R sends 7-13
-              ]                  # 14. RStudio sends lines 5-15; VSCode-R sends 6-14
-          )                      # 15. RStudio sends lines 5-15; VSCode-R sends 5-15
-                                 # 16. RStudio sends lines 16-17; VSCode-R sends 1-17
-        }                        # 17. RStudio sends lines 1-17; VSCode-R sends 1-17
+        if (TRUE) {              #  1. RStudio sends lines 1-17; vscode-R sends 1-17
+                                 #  2. RStudio sends lines 2-4; vscode-R sends 2-4
+          a = data.frame(x = 2,  #  3. RStudio sends lines 2-4; vscode-R sends 3-4
+            y = 3)               #  4. RStudio sends lines 2-4; vscode-R sends 3-4
+          print(                 #  5. RStudio sends lines 5-15; vscode-R sends 5-15
+            a[                   #  6. RStudio sends lines 5-15; vscode-R sends 6-14
+              if (TRUE) {        #  7. RStudio sends lines 7-13; vscode-R sends 7-13
+                {                #  8. RStudio sends lines 8-12; vscode-R sends 8-12
+                  (              #  9. RStudio sends lines 9-11; vscode-R sends 9-11
+                    1            # 10. RStudio sends lines 9-11; vscode-R sends 10
+                  )              # 11. RStudio sends lines 9-11; vscode-R sends 9-11
+                }                # 12. RStudio sends lines 8-12; vscode-R sends 8-12
+              }                  # 13. RStudio sends lines 5-15; vscode-R sends 7-13
+              ]                  # 14. RStudio sends lines 5-15; vscode-R sends 6-14
+          )                      # 15. RStudio sends lines 5-15; vscode-R sends 5-15
+                                 # 16. RStudio sends lines 16-17; vscode-R sends 1-17
+        }                        # 17. RStudio sends lines 1-17; vscode-R sends 1-17
         `.split("\n");
         function f9(i) {return (doc9[i])}
         function e9(i) {return (isEndOfCodeLine(cleanLine(doc9[i])))}
