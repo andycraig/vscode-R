@@ -57,11 +57,11 @@ export function activate(context: ExtensionContext) {
 
         let selectedLine = currentDocument.getText(range);
         if (!selectedLine) {
-            const extended = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
-            const charactersOnLine = window.activeTextEditor.document.lineAt(extended.endLine).text.length;
-            const newStart = new Position(extended.startLine, 0);
-            const newEnd = new Position(extended.endLine, charactersOnLine);
-            selection.linesDownToMoveCursor = 1 + extended.endLine - start.line;
+            const { startLine, endLine } = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
+            const charactersOnLine = window.activeTextEditor.document.lineAt(endLine).text.length;
+            const newStart = new Position(startLine, 0);
+            const newEnd = new Position(endLine, charactersOnLine);
+            selection.linesDownToMoveCursor = 1 + endLine - start.line;
             selectedLine = currentDocument.getText(new Range(newStart, newEnd));
         } else if (start.line === end.line) {
             selection.linesDownToMoveCursor = 0;

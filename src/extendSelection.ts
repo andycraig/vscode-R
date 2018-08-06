@@ -10,17 +10,6 @@ class PositionNeg {
     }
 }
 
-class NextChar {
-    char: string;
-    pos: PositionNeg;
-    endOfCodeLine: boolean;
-    constructor(_char: string, _pos: PositionNeg, _endOfCodeLine: boolean) {
-        this.char = _char;
-        this.pos = _pos;
-        this.endOfCodeLine = _endOfCodeLine;
-    }
-}
- 
 /**
  * Class to hold lines that have been fetched from the document after they have been preprocessed.
  */
@@ -116,10 +105,10 @@ export function isEndOfCodeLine(text: string) {
  * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
  * @param lineCount The number of lines in the document.
  */
-export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount): NextChar {
+export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount) {
     let s = getLine(p.line);
     let nextChar = "";
-    let nextPos = null;
+    let nextPos: PositionNeg = null;
     let endOfCodeLine = false;
     if (lookingForward) {
         if (p.character != s.length) {
@@ -159,7 +148,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
     } else {
         nextChar = getLine(nextPos.line)[nextPos.character];
     }
-    return (new NextChar(nextChar, nextPos, endOfCodeLine));
+    return ({ nextChar: nextChar, nextPos: nextPos, endOfCodeLine: endOfCodeLine });
 }
 
 /**
@@ -174,12 +163,12 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
 export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
     let flagAbort = false;
     let unmatchedBrackets: string[] = [];
-    let nextPos = pos;
+    var nextPos = pos;
+    var nextChar = '';
+    var endOfCodeLine = false;
     let possibleMatch = '';
     while (!bracketsMatch(possibleMatch, b) && !flagAbort) { 
-        let result = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
-        let nextChar = result.char;
-        nextPos = result.pos;
+        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
         if (isBracket(nextChar, lookingForward)) {
             unmatchedBrackets.push(nextChar);
         } else if (isBracket(nextChar, !lookingForward)) {
@@ -189,8 +178,8 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
                 flagAbort = true;
             }
         }
-        let atStartOfFile = !lookingForward && (nextPos.line == 0) && (result.endOfCodeLine);
-        let atEOF = lookingForward && (nextPos.line == lineCount) && (result.endOfCodeLine);
+        let atStartOfFile = !lookingForward && (nextPos.line == 0) && (endOfCodeLine);
+        let atEOF = lookingForward && (nextPos.line == lineCount) && (endOfCodeLine);
         if (atStartOfFile || atEOF) {
             // Have hit the start or end of the file without finding the matching bracket.
             flagAbort = true;
@@ -207,12 +196,12 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number): NextChar {
-    let result = getNextCharAndPos(pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
-    while (!result.endOfCodeLine && !(isBracket(result.char, true) || isBracket(result.char, false))) {
-        result = getNextCharAndPos(result.pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
+export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
+    var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
+    while (!endOfCodeLine && !(isBracket(nextChar, true) || isBracket(nextChar, false))) {
+        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
     }
-    return (result);
+    return ({ nextChar: nextChar, nextPos: nextPos, endOfCodeLine: endOfCodeLine });
 }
 
 /**
@@ -247,26 +236,25 @@ export function extend(line: number, getLine: (number) => string, lineCount: num
     // and poss[0] is the furthest point reached looking backward from the current line.
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
-    let flagAbort = false;
+    var flagAbort = false;
     // Check characters on current line. If a bracket, extend to the corresponding
     // matching bracket. If the end of an 'extended line' is reached, we are finished
     // extending in that direction. Continue until there are no more unmatched brackets, 
     // and the we have reached the ends of the 'extended lines' both forwards and backwards.
     while (!flagAbort && (!flagFinish[0] || !flagFinish[1])) {
-        let result = processRestOfExtendedLine(poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
-        if (isBracket(result.char, true) || isBracket(result.char, false)) {
+        let { nextChar, nextPos, endOfCodeLine } = processRestOfExtendedLine(poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
+        if (isBracket(nextChar, true) || isBracket(nextChar, false)) {
             // Check which direction in which we need to look for the matching bracket.
-            lookingForward = isBracket(result.char, true);
+            lookingForward = isBracket(nextChar, true);
             flagFinish[lookingForward ? 1 : 0] = false;
             // Start looking for the corresponding matching bracket from the next character
             // or from the furthest point we had previously reached, whichever is further
             // from the original line.
-            poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], result.pos, lookingForward);
-            poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], result.pos, !lookingForward);
-            let findResult =  findMatchingBracket(result.char, poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
-            poss[lookingForward ? 1 : 0] = findResult.pos;
-            flagAbort = findResult.flagAbort;
-        } else if (result.endOfCodeLine) {
+            poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
+            poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
+            var { pos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
+            poss[lookingForward ? 1 : 0] = pos;
+        } else if (endOfCodeLine) {
             // Found the end of the extended line.
             // Now, carry on checking from the furthest point reached in the opposite direction.
             flagFinish[lookingForward ? 1 : 0] = true;
