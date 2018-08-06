@@ -185,7 +185,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
             flagAbort = true;
         }
     }
-    return ({ pos: nextPos, flagAbort: flagAbort });
+    return ({ nextPos: nextPos, flagAbort: flagAbort });
 }
 
 /**
@@ -252,8 +252,8 @@ export function extend(line: number, getLine: (number) => string, lineCount: num
             // from the original line.
             poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
             poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
-            var { pos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
-            poss[lookingForward ? 1 : 0] = pos;
+            var { "nextPos": foundPos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
+            poss[lookingForward ? 1 : 0] = foundPos;
         } else if (endOfCodeLine) {
             // Found the end of the extended line.
             // Now, carry on checking from the furthest point reached in the opposite direction.

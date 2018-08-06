@@ -15,7 +15,7 @@ import { extend, cleanLine, isEndOfCodeLine } from "../src/extendSelection";
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", () => {
 
-    test("Sending well-formed blocks to console", () => {
+    test("Sending multi-line bracketed expression to console", () => {
         let doc1 = `
         function (x) {
             y = x
@@ -25,6 +25,9 @@ suite("Extension Tests", () => {
         function f1(i) {return (doc1[i])}
         function e1(i) {return (isEndOfCodeLine(cleanLine(doc1[i])))}
 
+        assert.equal(extend(1, f1, 6).startLine, 1);
+        assert.equal(extend(1, f1, 6).endLine, 4);
+
         let doc2 = `
         a = list(x = 1,
             y = 2)
@@ -32,6 +35,43 @@ suite("Extension Tests", () => {
         function f2(i) {return (doc2[i])}
         function e2(i) {return (isEndOfCodeLine(cleanLine(doc2[i])))}
 
+        assert.equal(extend(1, f2, 4).startLine, 1);
+        assert.equal(extend(1, f2, 4).endLine, 2);
+    })
+
+    test("Sending nested bracketed expression to console", () => {
+        let doc7 = `
+        (
+            c(
+                2
+            )
+        )
+        `.split("\n");
+        function f7(i) {return (doc7[i])}
+        function e7(i) {return (isEndOfCodeLine(cleanLine(doc7[i])))}
+
+        assert.equal(extend(4, f7, 6).startLine, 2);
+        assert.equal(extend(4, f7, 6).endLine, 4);
+        assert.equal(extend(1, f7, 6).startLine, 1);
+        assert.equal(extend(1, f7, 6).endLine, 5);
+ 
+        let doc8 = `
+        {
+            c(
+                2
+            )}
+        `.split("\n");
+        function f8(i) {return (doc8[i])}
+        function e8(i) {return (isEndOfCodeLine(cleanLine(doc8[i])))}
+
+        assert.equal(extend(3, f8, 5).startLine, 3);
+        assert.equal(extend(3, f8, 5).endLine, 3);
+        assert.equal(extend(4, f8, 5).startLine, 1);
+        assert.equal(extend(4, f8, 5).endLine, 4);
+ 
+    })
+
+    test("Sending brackets and pipes to console", () => {
         let doc4 = `
         {
             1
@@ -43,25 +83,38 @@ suite("Extension Tests", () => {
         function f4(i) {return (doc4[i])}
         function e4(i) {return (isEndOfCodeLine(cleanLine(doc4[i])))}
 
-        let doc7 = `
-        (
+        assert.equal(extend(0, f4, 6).startLine, 0);
+        assert.equal(extend(0, f4, 6).endLine, 6);
+        assert.equal(extend(1, f4, 6).startLine, 1);
+        assert.equal(extend(1, f4, 6).endLine, 6);
+        assert.equal(extend(2, f4, 6).startLine, 2);
+        assert.equal(extend(2, f4, 6).endLine, 2);
+        assert.equal(extend(3, f4, 6).startLine, 1);
+        assert.equal(extend(3, f4, 6).endLine, 6);
+        assert.equal(extend(4, f4, 6).startLine, 1);
+        assert.equal(extend(4, f4, 6).endLine, 6);
+        assert.equal(extend(5, f4, 6).startLine, 5);
+        assert.equal(extend(5, f4, 6).endLine, 5);
+        
+        let doc10 = `
+        {
+            1
+        } %>%
+
             c(
                 2
             )
-        )
         `.split("\n");
-        function f7(i) {return (doc7[i])}
-        function e7(i) {return (isEndOfCodeLine(cleanLine(doc7[i])))}
+        function f10(i) {return (doc10[i])}
+        function e10(i) {return (isEndOfCodeLine(cleanLine(doc10[i])))}
 
-        let doc8 = `
-        {
-            c(
-                2
-            )}
-        `.split("\n");
-        function f8(i) {return (doc8[i])}
-        function e8(i) {return (isEndOfCodeLine(cleanLine(doc8[i])))}
+        assert.equal(extend(5, f10, 7).startLine, 1);
+        assert.equal(extend(5, f10, 7).endLine, 7);
+        assert.equal(extend(5, f10, 8).startLine, 1);
+        assert.equal(extend(5, f10, 8).endLine, 7);
+    })
 
+    test("Sending large code example to console", () => {
         let doc9 = `
         if (TRUE) {              #  1. RStudio sends lines 1-17; VSCode-R sends 1-17
                                  #  2. RStudio sends lines 2-4; VSCode-R sends 2-4
@@ -84,44 +137,6 @@ suite("Extension Tests", () => {
         function f9(i) {return (doc9[i])}
         function e9(i) {return (isEndOfCodeLine(cleanLine(doc9[i])))}
 
-        let doc10 = `
-        {
-            1
-        } %>%
-
-            c(
-                2
-            )
-        `.split("\n");
-        function f10(i) {return (doc10[i])}
-        function e10(i) {return (isEndOfCodeLine(cleanLine(doc10[i])))}
-
-        assert.equal(extend(1, f1, 6).startLine, 1);
-        assert.equal(extend(1, f1, 6).endLine, 4);
-        assert.equal(extend(1, f2, 4).startLine, 1);
-        assert.equal(extend(1, f2, 4).endLine, 2);
-        assert.equal(extend(0, f4, 6).startLine, 0);
-        assert.equal(extend(0, f4, 6).endLine, 6);
-        assert.equal(extend(1, f4, 6).startLine, 1);
-        assert.equal(extend(1, f4, 6).endLine, 6);
-        assert.equal(extend(2, f4, 6).startLine, 2);
-        assert.equal(extend(2, f4, 6).endLine, 2);
-        assert.equal(extend(3, f4, 6).startLine, 1);
-        assert.equal(extend(3, f4, 6).endLine, 6);
-        assert.equal(extend(4, f4, 6).startLine, 1);
-        assert.equal(extend(4, f4, 6).endLine, 6);
-        assert.equal(extend(5, f4, 6).startLine, 5);
-        assert.equal(extend(5, f4, 6).endLine, 5);
-        assert.equal(extend(4, f7, 6).startLine, 2);
-        assert.equal(extend(4, f7, 6).endLine, 4);
-        assert.equal(extend(3, f8, 5).startLine, 3);
-        assert.equal(extend(3, f8, 5).endLine, 3);
-        assert.equal(extend(4, f8, 5).startLine, 1);
-        assert.equal(extend(4, f8, 5).endLine, 4);
-        assert.equal(extend(1, f7, 6).startLine, 1);
-        assert.equal(extend(1, f7, 6).endLine, 5);
-        assert.equal(extend(5, f10, 7).startLine, 1);
-        assert.equal(extend(5, f10, 7).endLine, 7);
         assert.equal(extend(1, f9, 18).startLine, 1);
         assert.equal(extend(1, f9, 18).endLine, 17);
         assert.equal(extend(2, f9, 18).startLine, 2);
@@ -156,8 +171,6 @@ suite("Extension Tests", () => {
         assert.equal(extend(16, f9, 18).endLine, 17);
         assert.equal(extend(17, f9, 18).startLine, 1);
         assert.equal(extend(17, f9, 18).endLine, 17);
-        assert.equal(extend(5, f10, 8).startLine, 1);
-        assert.equal(extend(5, f10, 8).endLine, 7);
     });
 
     test("Sending badly-formed blocks to console", () => {
