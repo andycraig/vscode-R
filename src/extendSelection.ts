@@ -25,31 +25,31 @@ class LineCache {
         this.endsInOperatorCache = new Map<number, boolean>();
     }
     getLineFromCache(line: number) {
-        let lineInCache = this.lineCache.has(line);
+        const lineInCache = this.lineCache.has(line);
         if (!lineInCache) {
             this.addLineToCache(line);
         }
-        let s = this.lineCache.get(line);
+        const s = this.lineCache.get(line);
         return (s);
     }
     getEndsInOperatorFromCache(line: number) {
-        let lineInCache = this.lineCache.has(line);
+        const lineInCache = this.lineCache.has(line);
         if (!lineInCache) {
             this.addLineToCache(line);
         }
-        let s = this.endsInOperatorCache.get(line);
+        const s = this.endsInOperatorCache.get(line);
         return (s);
     }
     addLineToCache(line: number) {
-        let cleaned = cleanLine(this.getLine(line));
-        let endsInOperator = doesLineEndInOperator(cleaned);
+        const cleaned = cleanLine(this.getLine(line));
+        const endsInOperator = doesLineEndInOperator(cleaned);
         this.lineCache.set(line, cleaned);
         this.endsInOperatorCache.set(line, endsInOperator);
     }
 }
 
 function doBracketsMatch(a: string, b: string): boolean {
-    let matches = { "(":")", "[":"]", "{":"}", ")":"(", "]":"[", "}":"{" };
+    const matches = { "(":")", "[":"]", "{":"}", ")":"(", "]":"[", "}":"{" };
     return matches[a] == b;
 }
 
@@ -62,7 +62,7 @@ function isBracket(c: string, forward: boolean) {
 }
 
 export function cleanLine(text: string) {
-    let cleaned = text.replace(/\s*\#.*/, ""); // Remove comments and preceeding spaces
+    const cleaned = text.replace(/\s*\#.*/, ""); // Remove comments and preceeding spaces
     return (cleaned);
 }
 
@@ -85,8 +85,8 @@ function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean)
 }
 
 export function doesLineEndInOperator(text: string) {
-    let endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
-    let spacesOnlyIndex = text.search(/^\s*$/); // Space-only lines also counted.
+    const endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
+    const spacesOnlyIndex = text.search(/^\s*$/); // Space-only lines also counted.
     return ((0 <= endingOperatorIndex) || (0 <= spacesOnlyIndex));
 }
 
@@ -102,8 +102,7 @@ export function doesLineEndInOperator(text: string) {
  * @param lineCount The number of lines in the document.
  */
 export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lineCount) {
-    let s = getLine(p.line);
-    let nextChar = '';
+    const s = getLine(p.line);
     let nextPos: PositionNeg = null;
     let endOfCodeLine = false;
     if (lookingForward) {
@@ -115,7 +114,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
             // At end of document. Return same character.
             nextPos = new PositionNeg(p.line, p.character);
         }
-        let nextLine: string = getLine(nextPos.line);
+        const nextLine: string = getLine(nextPos.line);
         if (nextPos.character == nextLine.length) {
             if ((nextPos.line == (lineCount - 1)) || !getDoesLineEndInOperator(nextPos.line)) {
                 endOfCodeLine = true;
@@ -137,6 +136,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
         }
     }
     // Represent the start and end of the line with special characters.
+    let nextChar = '';
     if (nextPos.character == s.length) {
         nextChar = "EOL";
     } else if (nextPos.character == -1) {
@@ -211,9 +211,9 @@ export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) =>
  * @param lineCount The number of lines in the document.
  */
 export function extendSelection(line: number, getLine: (number) => string, lineCount: number) {
-    let lc = new LineCache(getLine, lineCount);
-    let getLineFromCache = function(x) { return (lc.getLineFromCache(x)); }
-    let getEndsInOperatorFromCache = function(x) { return (lc.getEndsInOperatorFromCache(x)); }
+    const lc = new LineCache(getLine, lineCount);
+    const getLineFromCache = function(x) { return (lc.getLineFromCache(x)); }
+    const getEndsInOperatorFromCache = function(x) { return (lc.getEndsInOperatorFromCache(x)); }
     let lookingForward = true;
     // poss[1] is the furthest point reached looking forward from the current line,
     // and poss[0] is the furthest point reached looking backward from the current line.
