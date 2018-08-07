@@ -210,21 +210,6 @@ export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) =>
  * Given a line number, determines the first and last lines required to 
  * include all the matching brackets and all the 'extended lines' (single code lines
  * split into multiple lines each ending in an operator) from that line.
- * 
- * For example, say these are some lines of an R script:
- *
- * library(magrittr)  # Line 1
- * list(x = 1,        # Line 2
- *      y = 2) %>%    # Line 3  
- *      print()       # Line 4
- * print(-1)          # Line 5
- * 
- * Say we start from line 3. We proceed forward, then hit the ')'. We then look backward
- * for the matching '('. We find that on line 2. We then continue back along line 2, until 
- * we hit the start. At that point, we continue from the furthest forward point reached so far:
- * the '(' on line 3. Continuing forward, we find that the line continues on to line 4 because it 
- * ends in an operator ('%>%'). We therefore check the rest of line 4, and find that it ends. 
- * So, the start line returned is 1 and the end line is 4.
  * @param line The line of the document at which to start.
  * @param getLine A function that returns the string at the given line.
  * @param lineCount The number of lines in the document.
