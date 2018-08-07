@@ -16,6 +16,7 @@ import { extendSelection, cleanLine, isEndOfCodeLine } from "../src/extendSelect
 suite("Extension Tests", () => {
 
     test("Selecting multi-line bracketed expression", () => {
+
         let doc = `
         function (x) {
             y = x
@@ -46,6 +47,7 @@ suite("Extension Tests", () => {
     })
 
     test("Selecting nested bracketed expression", () => {
+
         let doc = `
         (
             c(
@@ -85,6 +87,7 @@ suite("Extension Tests", () => {
     })
 
     test("Selecting brackets and pipes", () => {
+
         let doc = `
         {
             1
@@ -136,6 +139,7 @@ suite("Extension Tests", () => {
     })
 
     test("Selecting large code example", () => {
+        
         let doc = `
         if (TRUE) {              #  1. RStudio sends lines 1-17; vscode-R sends 1-17
                                  #  2. RStudio sends lines 2-4; vscode-R sends 2-4
@@ -194,6 +198,7 @@ suite("Extension Tests", () => {
     });
 
     test("Selecting block with missing opening bracket", () => {
+
         let doc = `
             1
         } %>%
@@ -246,8 +251,8 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(3, f, doc.length).endLine, 3);
     })
 
-
     test("Selecting block with missing opening bracket 2", () => {
+
         let doc = `
                 2
             )
@@ -261,6 +266,7 @@ suite("Extension Tests", () => {
     });
 
     test("Selecting block with missing opening bracket and gap", () => {
+
         let doc = `
 
                 2
