@@ -89,7 +89,7 @@ function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean)
  * @param text Text to check.
  */
 export function isEndOfCodeLine(text: string) {
-    let endingOperatorIndex = text.search(/(,|\+|!|"\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
+    let endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
     let spacesOnlyIndex = text.search(/^\s*$/);
     return ((0 > endingOperatorIndex) && (0 > spacesOnlyIndex));
 }
