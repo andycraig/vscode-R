@@ -5,7 +5,7 @@ import { commands, ExtensionContext, languages, Position, Range, window, workspa
 import { createGitignore } from "./rGitignore";
 import { createRTerm, deleteTerminal, rTerm } from "./rTerminal";
 import { checkForSpecialCharacters, checkIfFileExists, config, delay } from "./util";
-import { extend } from "./extendSelection";
+import { extendSelection } from "./extendSelection";
 
 import fs = require("fs-extra");
 
@@ -57,7 +57,7 @@ export function activate(context: ExtensionContext) {
 
         let selectedLine = currentDocument.getText(range);
         if (!selectedLine) {
-            const { startLine, endLine } = extend(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
+            const { startLine, endLine } = extendSelection(start.line, function(x) { return (currentDocument.lineAt(x).text) }, currentDocument.lineCount);
             const charactersOnLine = window.activeTextEditor.document.lineAt(endLine).text.length;
             const newStart = new Position(startLine, 0);
             const newEnd = new Position(endLine, charactersOnLine);

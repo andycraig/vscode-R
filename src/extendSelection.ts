@@ -48,7 +48,7 @@ class LineCache {
     }
 }
 
-function bracketsMatch(a: string, b: string): boolean {
+function doBracketsMatch(a: string, b: string): boolean {
     let matches = { "(":")", "[":"]", "{":"}", ")":"(", "]":"[", "}":"{" };
     return matches[a] == b;
 }
@@ -67,10 +67,10 @@ export function cleanLine(text: string) {
 }
 
 /**
- * Returns which of two Positions are 'further'.
+ * Returns which of two PositionNegs are 'further'.
  * @param p A PositionNeg to compare.
  * @param q A PositionNeg to compare.
- * @param lookingForward If true, Positions closer to the end of the document are 'further'.
+ * @param lookingForward If true, PositionNegs closer to the end of the document are 'further'.
  */
 function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean) {
     if (lookingForward) {
@@ -98,7 +98,7 @@ export function isEndOfCodeLine(text: string) {
  * From a given position, return the 'next' character and some associated information.
  * The next character may be on a different line if at the start/end of a line, or it may be the
  * same character if at the start/end of a document.
- * Considers the start and end of each line to be distinct characters.
+ * Considers the start and end of each line to be special distinct characters.
  * @param p The starting position.
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param getLine A function that returns the string at the given line.
@@ -152,7 +152,8 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
 }
 
 /**
- * Finds the position of the match of a given bracket.
+ * Finds the position of the match of a given bracket. Returns flagAbort = true if brackets are inconsistent
+ * or start/end of file is reached.
  * @param b The bracket character to match.
  * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
  * @param getLine A function that returns the string at the given line.
@@ -167,14 +168,14 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
     var nextChar = '';
     var endOfCodeLine = false;
     let possibleMatch = '';
-    while (!bracketsMatch(possibleMatch, b) && !flagAbort) { 
+    while (!doBracketsMatch(possibleMatch, b) && !flagAbort) { 
         var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
         if (isBracket(nextChar, lookingForward)) {
             unmatchedBrackets.push(nextChar);
         } else if (isBracket(nextChar, !lookingForward)) {
            if (unmatchedBrackets.length == 0) {
                 possibleMatch = nextChar;
-            } else if (!bracketsMatch(nextChar, unmatchedBrackets.pop())) {
+            } else if (!doBracketsMatch(nextChar, unmatchedBrackets.pop())) {
                 flagAbort = true;
             }
         }
@@ -189,7 +190,8 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
 }
 
 /**
- * Finds the termination of a line of code which is possibly split over multiple lines.
+ * Finds the next bracket, or the termination of a line of code which is possibly split over multiple lines,
+ * whichever comes first.
  * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
  * @param getLine A function that returns the string at the given line.
  * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
@@ -217,17 +219,17 @@ export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) =>
  *      print()       # Line 4
  * print(-1)          # Line 5
  * 
- * Say we start from line 3. We will proceed forward, then hit the ')'. We will then look backward
+ * Say we start from line 3. We proceed forward, then hit the ')'. We then look backward
  * for the matching '('. We find that on line 2. We then continue back along line 2, until 
  * we hit the start. At that point, we continue from the furthest forward point reached so far:
- * the '(' on line 3. We continue forward, and find that the line continues on to line 4 because it 
+ * the '(' on line 3. Continuing forward, we find that the line continues on to line 4 because it 
  * ends in an operator ('%>%'). We therefore check the rest of line 4, and find that it ends. 
  * So, the start line returned is 1 and the end line is 4.
  * @param line The line of the document at which to start.
  * @param getLine A function that returns the string at the given line.
  * @param lineCount The number of lines in the document.
  */
-export function extend(line: number, getLine: (number) => string, lineCount: number) {
+export function extendSelection(line: number, getLine: (number) => string, lineCount: number) {
     let lc = new LineCache(getLine, lineCount);
     let getLineFromCache = function(x) { return (lc.getLineFromCache(x)); }
     let getIsEndOfCodeLineFromCache = function(x) { return (lc.getIsEndOfCodeLineFromCache(x)); }
