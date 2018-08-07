@@ -15,64 +15,77 @@ import { extend, cleanLine, isEndOfCodeLine } from "../src/extendSelection";
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", () => {
 
-    test("Sending multi-line bracketed expression to console", () => {
-        let doc1 = `
+    test("Selecting multi-line bracketed expression", () => {
+        let doc = `
         function (x) {
             y = x
             y
         }
         `.split("\n");
-        function f1(i) {return (doc1[i])}
-        function e1(i) {return (isEndOfCodeLine(cleanLine(doc1[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(1, f1, doc1.length).startLine, 1);
-        assert.equal(extend(1, f1, doc1.length).endLine, 4);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 4);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 3);
+        assert.equal(extend(4, f, doc.length).startLine, 1);
+        assert.equal(extend(4, f, doc.length).endLine, 4);
 
         let doc2 = `
         a = list(x = 1,
             y = 2)
         `.split("\n");
         function f2(i) {return (doc2[i])}
-        function e2(i) {return (isEndOfCodeLine(cleanLine(doc2[i])))}
 
         assert.equal(extend(1, f2, doc2.length).startLine, 1);
         assert.equal(extend(1, f2, doc2.length).endLine, 2);
+        assert.equal(extend(2, f2, doc2.length).startLine, 1);
+        assert.equal(extend(2, f2, doc2.length).endLine, 2);
     })
 
-    test("Sending nested bracketed expression to console", () => {
-        let doc7 = `
+    test("Selecting nested bracketed expression", () => {
+        let doc = `
         (
             c(
                 2
             )
         )
         `.split("\n");
-        function f7(i) {return (doc7[i])}
-        function e7(i) {return (isEndOfCodeLine(cleanLine(doc7[i])))}
+        function f(i) {return (doc[i])};
 
-        assert.equal(extend(4, f7, doc7.length).startLine, 2);
-        assert.equal(extend(4, f7, doc7.length).endLine, 4);
-        assert.equal(extend(1, f7, doc7.length).startLine, 1);
-        assert.equal(extend(1, f7, doc7.length).endLine, 5);
- 
-        let doc8 = `
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 5);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 4);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 3);
+        assert.equal(extend(4, f, doc.length).startLine, 2);
+        assert.equal(extend(4, f, doc.length).endLine, 4);
+        assert.equal(extend(5, f, doc.length).startLine, 1);
+        assert.equal(extend(5, f, doc.length).endLine, 5);
+
+        let doc2 = `
         {
             c(
                 2
             )}
         `.split("\n");
-        function f8(i) {return (doc8[i])}
-        function e8(i) {return (isEndOfCodeLine(cleanLine(doc8[i])))}
+        function f2(i) {return (doc2[i])}
 
-        assert.equal(extend(3, f8, doc8.length).startLine, 3);
-        assert.equal(extend(3, f8, doc8.length).endLine, 3);
-        assert.equal(extend(4, f8, doc8.length).startLine, 1);
-        assert.equal(extend(4, f8, doc8.length).endLine, 4);
- 
+        assert.equal(extend(1, f2, doc2.length).startLine, 1);
+        assert.equal(extend(1, f2, doc2.length).endLine, 4);
+        assert.equal(extend(2, f2, doc2.length).startLine, 1);
+        assert.equal(extend(2, f2, doc2.length).endLine, 4);
+        assert.equal(extend(3, f2, doc2.length).startLine, 3);
+        assert.equal(extend(3, f2, doc2.length).endLine, 3);
+        assert.equal(extend(4, f2, doc2.length).startLine, 1);
+        assert.equal(extend(4, f2, doc2.length).endLine, 4);
     })
 
-    test("Sending brackets and pipes to console", () => {
-        let doc4 = `
+    test("Selecting brackets and pipes", () => {
+        let doc = `
         {
             1
         } %>%
@@ -80,23 +93,22 @@ suite("Extension Tests", () => {
                 2
             )
         `.split("\n");
-        function f4(i) {return (doc4[i])}
-        function e4(i) {return (isEndOfCodeLine(cleanLine(doc4[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(0, f4, doc4.length).startLine, 0);
-        assert.equal(extend(0, f4, doc4.length).endLine, 6);
-        assert.equal(extend(1, f4, doc4.length).startLine, 1);
-        assert.equal(extend(1, f4, doc4.length).endLine, 6);
-        assert.equal(extend(2, f4, doc4.length).startLine, 2);
-        assert.equal(extend(2, f4, doc4.length).endLine, 2);
-        assert.equal(extend(3, f4, doc4.length).startLine, 1);
-        assert.equal(extend(3, f4, doc4.length).endLine, 6);
-        assert.equal(extend(4, f4, doc4.length).startLine, 1);
-        assert.equal(extend(4, f4, doc4.length).endLine, 6);
-        assert.equal(extend(5, f4, doc4.length).startLine, 5);
-        assert.equal(extend(5, f4, doc4.length).endLine, 5);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 6);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
+        assert.equal(extend(3, f, doc.length).startLine, 1);
+        assert.equal(extend(3, f, doc.length).endLine, 6);
+        assert.equal(extend(4, f, doc.length).startLine, 1);
+        assert.equal(extend(4, f, doc.length).endLine, 6);
+        assert.equal(extend(5, f, doc.length).startLine, 5);
+        assert.equal(extend(5, f, doc.length).endLine, 5);
+        assert.equal(extend(6, f, doc.length).startLine, 1);
+        assert.equal(extend(6, f, doc.length).endLine, 6);
         
-        let doc10 = `
+        let doc2 = `
         {
             1
         } %>%
@@ -105,17 +117,26 @@ suite("Extension Tests", () => {
                 2
             )
         `.split("\n");
-        function f10(i) {return (doc10[i])}
-        function e10(i) {return (isEndOfCodeLine(cleanLine(doc10[i])))}
+        function f2(i) {return (doc2[i])}
 
-        assert.equal(extend(5, f10, doc10.length).startLine, 1);
-        assert.equal(extend(5, f10, doc10.length).endLine, 7);
-        assert.equal(extend(5, f10, doc10.length).startLine, 1);
-        assert.equal(extend(5, f10, doc10.length).endLine, 7);
+        assert.equal(extend(1, f2, doc2.length).startLine, 1);
+        assert.equal(extend(1, f2, doc2.length).endLine, 7);
+        assert.equal(extend(2, f2, doc2.length).startLine, 2);
+        assert.equal(extend(2, f2, doc2.length).endLine, 2);
+        assert.equal(extend(3, f2, doc2.length).startLine, 1);
+        assert.equal(extend(3, f2, doc2.length).endLine, 7);
+        assert.equal(extend(4, f2, doc2.length).startLine, 1);
+        assert.equal(extend(4, f2, doc2.length).endLine, 7);
+        assert.equal(extend(5, f2, doc2.length).startLine, 1);
+        assert.equal(extend(5, f2, doc2.length).endLine, 7);
+        assert.equal(extend(6, f2, doc2.length).startLine, 6);
+        assert.equal(extend(6, f2, doc2.length).endLine, 6);
+        assert.equal(extend(7, f2, doc2.length).startLine, 1);
+        assert.equal(extend(7, f2, doc2.length).endLine, 7);
     })
 
-    test("Sending large code example to console", () => {
-        let doc9 = `
+    test("Selecting large code example", () => {
+        let doc = `
         if (TRUE) {              #  1. RStudio sends lines 1-17; vscode-R sends 1-17
                                  #  2. RStudio sends lines 2-4; vscode-R sends 2-4
           a = data.frame(x = 2,  #  3. RStudio sends lines 2-4; vscode-R sends 3-4
@@ -134,90 +155,130 @@ suite("Extension Tests", () => {
                                  # 16. RStudio sends lines 16-17; vscode-R sends 1-17
         }                        # 17. RStudio sends lines 1-17; vscode-R sends 1-17
         `.split("\n");
-        function f9(i) {return (doc9[i])}
-        function e9(i) {return (isEndOfCodeLine(cleanLine(doc9[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(1, f9, doc9.length).startLine, 1);
-        assert.equal(extend(1, f9, doc9.length).endLine, 17);
-        assert.equal(extend(2, f9, doc9.length).startLine, 2);
-        assert.equal(extend(2, f9, doc9.length).endLine, 4);
-        assert.equal(extend(3, f9, doc9.length).startLine, 3);
-        assert.equal(extend(3, f9, doc9.length).endLine, 4);
-        assert.equal(extend(4, f9, doc9.length).startLine, 3);
-        assert.equal(extend(4, f9, doc9.length).endLine, 4);
-        assert.equal(extend(5, f9, doc9.length).startLine, 5);
-        assert.equal(extend(5, f9, doc9.length).endLine, 15);
-        assert.equal(extend(6, f9, doc9.length).startLine, 6);
-        assert.equal(extend(6, f9, doc9.length).endLine, 14);
-        assert.equal(extend(7, f9, doc9.length).startLine, 7);
-        assert.equal(extend(7, f9, doc9.length).endLine, 13);
-        assert.equal(extend(8, f9, doc9.length).startLine, 8);
-        assert.equal(extend(8, f9, doc9.length).endLine, 12);
-        assert.equal(extend(9, f9, doc9.length).startLine, 9);
-        assert.equal(extend(9, f9, doc9.length).endLine, 11);
-        assert.equal(extend(10, f9, doc9.length).startLine, 10);
-        assert.equal(extend(10, f9, doc9.length).endLine, 10);
-        assert.equal(extend(11, f9, doc9.length).startLine, 9);
-        assert.equal(extend(11, f9, doc9.length).endLine, 11);
-        assert.equal(extend(12, f9, doc9.length).startLine, 8);
-        assert.equal(extend(12, f9, doc9.length).endLine, 12);
-        assert.equal(extend(13, f9, doc9.length).startLine, 7);
-        assert.equal(extend(13, f9, doc9.length).endLine, 13);
-        assert.equal(extend(14, f9, doc9.length).startLine, 6);
-        assert.equal(extend(14, f9, doc9.length).endLine, 14);
-        assert.equal(extend(15, f9, doc9.length).startLine, 5);
-        assert.equal(extend(15, f9, doc9.length).endLine, 15);
-        assert.equal(extend(16, f9, doc9.length).startLine, 1);
-        assert.equal(extend(16, f9, doc9.length).endLine, 17);
-        assert.equal(extend(17, f9, doc9.length).startLine, 1);
-        assert.equal(extend(17, f9, doc9.length).endLine, 17);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 17);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 4);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 4);
+        assert.equal(extend(4, f, doc.length).startLine, 3);
+        assert.equal(extend(4, f, doc.length).endLine, 4);
+        assert.equal(extend(5, f, doc.length).startLine, 5);
+        assert.equal(extend(5, f, doc.length).endLine, 15);
+        assert.equal(extend(6, f, doc.length).startLine, 6);
+        assert.equal(extend(6, f, doc.length).endLine, 14);
+        assert.equal(extend(7, f, doc.length).startLine, 7);
+        assert.equal(extend(7, f, doc.length).endLine, 13);
+        assert.equal(extend(8, f, doc.length).startLine, 8);
+        assert.equal(extend(8, f, doc.length).endLine, 12);
+        assert.equal(extend(9, f, doc.length).startLine, 9);
+        assert.equal(extend(9, f, doc.length).endLine, 11);
+        assert.equal(extend(10, f, doc.length).startLine, 10);
+        assert.equal(extend(10, f, doc.length).endLine, 10);
+        assert.equal(extend(11, f, doc.length).startLine, 9);
+        assert.equal(extend(11, f, doc.length).endLine, 11);
+        assert.equal(extend(12, f, doc.length).startLine, 8);
+        assert.equal(extend(12, f, doc.length).endLine, 12);
+        assert.equal(extend(13, f, doc.length).startLine, 7);
+        assert.equal(extend(13, f, doc.length).endLine, 13);
+        assert.equal(extend(14, f, doc.length).startLine, 6);
+        assert.equal(extend(14, f, doc.length).endLine, 14);
+        assert.equal(extend(15, f, doc.length).startLine, 5);
+        assert.equal(extend(15, f, doc.length).endLine, 15);
+        assert.equal(extend(16, f, doc.length).startLine, 1);
+        assert.equal(extend(16, f, doc.length).endLine, 17);
+        assert.equal(extend(17, f, doc.length).startLine, 1);
+        assert.equal(extend(17, f, doc.length).endLine, 17);
     });
 
-    test("Sending block with missing opening bracket", () => {
-        let doc5 = `
+    test("Selecting block with missing opening bracket", () => {
+        let doc = `
             1
         } %>%
             c(
                 2
             )
         `.split("\n");
-        function f5(i) {return (doc5[i])}
-        function e5(i) {return (isEndOfCodeLine(cleanLine(doc5[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(5, f5, doc5.length).startLine, 5);
-        assert.equal(extend(5, f5, doc5.length).endLine, 5);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 3);
+        assert.equal(extend(4, f, doc.length).startLine, 4);
+        assert.equal(extend(4, f, doc.length).endLine, 4);
+        assert.equal(extend(5, f, doc.length).startLine, 5);
+        assert.equal(extend(5, f, doc.length).endLine, 5);
     });
 
-    test("Sending block with missing closing bracket", () => {
+    test("Selecting block with missing closing bracket", () => {
 
-        let doc6 = `
+        let doc = `
             c(
                 2
         `.split("\n");
-        function f6(i) {return (doc6[i])}
-        function e6(i) {return (isEndOfCodeLine(cleanLine(doc6[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(1, f6, doc6.length).startLine, 1);
-        assert.equal(extend(1, f6, doc6.length).endLine, 1);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
     })
 
-    test("Sending block with missing opening bracket 2", () => {
-        let doc11 = `
+    test("Selecting block with missing closing bracket and gap", () => {
+
+        let doc = `
+            c(
+                2
+
+        `.split("\n");
+        function f(i) {return (doc[i])}
+
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 3);
+    })
+
+
+    test("Selecting block with missing opening bracket 2", () => {
+        let doc = `
                 2
             )
         `.split("\n");
-        function f11(i) {return (doc11[i])}
-        function e11(i) {return (isEndOfCodeLine(cleanLine(doc11[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(1, f11, doc11.length).startLine, 1);
-        assert.equal(extend(1, f11, doc11.length).endLine, 1);
-        assert.equal(extend(2, f11, doc11.length).startLine, 2);
-        assert.equal(extend(2, f11, doc11.length).endLine, 2);
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
     });
 
-    test("Sending longer badly-formed block to console", () => {
+    test("Selecting block with missing opening bracket and gap", () => {
+        let doc = `
 
-       let doc12 = `
+                2
+            )
+        `.split("\n");
+        function f(i) {return (doc[i])}
+
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
+        assert.equal(extend(2, f, doc.length).startLine, 2);
+        assert.equal(extend(2, f, doc.length).endLine, 2);
+        assert.equal(extend(3, f, doc.length).startLine, 3);
+        assert.equal(extend(3, f, doc.length).endLine, 3);
+    });
+
+    test("Selecting longer badly-formed block", () => {
+
+       let doc = `
         polys = SpatialPolygonsDataFrame(
             SpatialPolygons(list(
                 Polygons(list(
@@ -229,12 +290,10 @@ suite("Extension Tests", () => {
                     ), ID = "2"))
                 )), data = data.frame(id = c(1,2))
         `.split("\n");
-        function f12(i) {return (doc12[i])}
-        function e12(i) {return (isEndOfCodeLine(cleanLine(doc12[i])))}
+        function f(i) {return (doc[i])}
 
-        assert.equal(extend(1, f12, 12).startLine, 1);
-        assert.equal(extend(1, f12, 12).endLine, 1);
-
+        assert.equal(extend(1, f, doc.length).startLine, 1);
+        assert.equal(extend(1, f, doc.length).endLine, 1);
     });
 
 });
