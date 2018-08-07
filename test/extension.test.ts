@@ -278,7 +278,7 @@ suite("Extension Tests", () => {
 
     test("Selecting longer badly-formed block", () => {
 
-       let doc = `
+        let doc = `
         polys = SpatialPolygonsDataFrame(
             SpatialPolygons(list(
                 Polygons(list(
@@ -295,5 +295,26 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(1, f, doc.length).startLine, 1);
         assert.equal(extendSelection(1, f, doc.length).endLine, 1);
     });
+
+    test("Selecting with comments", () => {
+
+        let doc = `
+            {
+                1
+                # }
+            }
+        `.split("\n");
+        function f(i) {return (doc[i])}
+
+        assert.equal(extendSelection(1, f, doc.length).startLine, 1);
+        assert.equal(extendSelection(1, f, doc.length).endLine, 4);
+        assert.equal(extendSelection(2, f, doc.length).startLine, 2);
+        assert.equal(extendSelection(2, f, doc.length).endLine, 2);
+        assert.equal(extendSelection(3, f, doc.length).startLine, 1);
+        assert.equal(extendSelection(3, f, doc.length).endLine, 4);
+        assert.equal(extendSelection(4, f, doc.length).startLine, 1);
+        assert.equal(extendSelection(4, f, doc.length).endLine, 4);
+    });
+
 
 });

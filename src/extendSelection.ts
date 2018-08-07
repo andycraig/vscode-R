@@ -107,7 +107,7 @@ export function isEndOfCodeLine(text: string) {
  */
 export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount) {
     let s = getLine(p.line);
-    let nextChar = "";
+    let nextChar = '';
     let nextPos: PositionNeg = null;
     let endOfCodeLine = false;
     if (lookingForward) {
