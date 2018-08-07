@@ -39,16 +39,6 @@ export function activate(context: ExtensionContext) {
         setFocus();
     }
 
-    function countBlockStartsAndEnds(textArray: string[]) {
-        let blockStartsCount = 0;
-        let blockEndsCount = 0;
-        for (const text of textArray) {
-            blockStartsCount += text.replace(/\s*#.*{|[^{]/g, "").length;
-            blockEndsCount += text.replace(/\s*#.*}|[^}]/g, "").length;
-        }
-        return { numberBlockStarts: blockStartsCount, numberBlockEnds: blockEndsCount };
-    }
-
     function getSelection(): any {
         const selection = { linesDownToMoveCursor: 0, selectedTextArray: [] };
         const { start, end } = window.activeTextEditor.selection;
