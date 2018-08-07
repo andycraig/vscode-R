@@ -153,11 +153,11 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
  * @param b The bracket character to match.
  * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
  * @param getLine A function that returns the string at the given line.
- * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
+ * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
+export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
     let flagAbort = false;
     let unmatchedBrackets: string[] = [];
     var nextPos = pos;
@@ -165,7 +165,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
     var endOfCodeLine = false;
     let possibleMatch = '';
     while (!doBracketsMatch(possibleMatch, b) && !flagAbort) { 
-        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
+        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
         if (isBracket(nextChar, lookingForward)) {
             unmatchedBrackets.push(nextChar);
         } else if (isBracket(nextChar, !lookingForward)) {
@@ -190,14 +190,14 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
  * whichever comes first.
  * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
  * @param getLine A function that returns the string at the given line.
- * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
+ * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lookingForward: boolean, lineCount: number) {
-    var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(pos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
+export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
+    var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(pos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
     while (!endOfCodeLine && !(isBracket(nextChar, true) || isBracket(nextChar, false))) {
-        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getIsEndOfCodeLine, lineCount);
+        var { nextChar, nextPos, endOfCodeLine } = getNextCharAndPos(nextPos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
     }
     return ({ nextChar: nextChar, nextPos: nextPos, endOfCodeLine: endOfCodeLine });
 }
