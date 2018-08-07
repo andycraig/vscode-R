@@ -44,6 +44,20 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(1, f2, doc2.length).endLine, 2);
         assert.equal(extendSelection(2, f2, doc2.length).startLine, 1);
         assert.equal(extendSelection(2, f2, doc2.length).endLine, 2);
+
+        let doc3 = `
+        a = list(x = 1,
+            y = 2,
+            z = 3)
+        `.split("\n");
+        function f3(i) {return (doc3[i])}
+
+        assert.equal(extendSelection(1, f3, doc3.length).startLine, 1);
+        assert.equal(extendSelection(1, f3, doc3.length).endLine, 3);
+        assert.equal(extendSelection(2, f3, doc3.length).startLine, 1);
+        assert.equal(extendSelection(2, f3, doc3.length).endLine, 3);
+        assert.equal(extendSelection(3, f3, doc3.length).startLine, 1);
+        assert.equal(extendSelection(3, f3, doc3.length).endLine, 3);
     })
 
     test("Selecting nested bracketed expression", () => {
