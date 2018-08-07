@@ -15,14 +15,14 @@ class PositionNeg {
  */
 class LineCache {
     lineCache: Map<number, string>;
-    endOfCodeLineCache: Map<number, boolean>;
+    endsInOperatorCache: Map<number, boolean>;
     getLine: (number) => string;
     lineCount: number;
     constructor(_getLine: (number) => string, _lineCount: number) {
         this.getLine = _getLine;
         this.lineCount = _lineCount;
         this.lineCache = new Map<number, string>();
-        this.endOfCodeLineCache = new Map<number, boolean>();
+        this.endsInOperatorCache = new Map<number, boolean>();
     }
     getLineFromCache(line: number) {
         let lineInCache = this.lineCache.has(line);
@@ -32,19 +32,19 @@ class LineCache {
         let s = this.lineCache.get(line);
         return (s);
     }
-    getIsEndOfCodeLineFromCache(line: number) {
+    getEndsInOperatorFromCache(line: number) {
         let lineInCache = this.lineCache.has(line);
         if (!lineInCache) {
             this.addLineToCache(line);
         }
-        let s = this.endOfCodeLineCache.get(line);
+        let s = this.endsInOperatorCache.get(line);
         return (s);
     }
     addLineToCache(line: number) {
         let cleaned = cleanLine(this.getLine(line));
-        let endOfCodeLine = isEndOfCodeLine(cleaned);
+        let endsInOperator = doesLineEndInOperator(cleaned);
         this.lineCache.set(line, cleaned);
-        this.endOfCodeLineCache.set(line, endOfCodeLine);
+        this.endsInOperatorCache.set(line, endsInOperator);
     }
 }
 
@@ -84,14 +84,10 @@ function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean)
     }
 }
 
-/**
- * Is given text the end of a line of code (which is possibly split over multiple linees)?
- * @param text Text to check.
- */
-export function isEndOfCodeLine(text: string) {
+export function doesLineEndInOperator(text: string) {
     let endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
-    let spacesOnlyIndex = text.search(/^\s*$/);
-    return ((0 > endingOperatorIndex) && (0 > spacesOnlyIndex));
+    let spacesOnlyIndex = text.search(/^\s*$/); // Space-only lines also counted.
+    return ((0 <= endingOperatorIndex) || (0 <= spacesOnlyIndex));
 }
 
 /**
@@ -102,10 +98,10 @@ export function isEndOfCodeLine(text: string) {
  * @param p The starting position.
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param getLine A function that returns the string at the given line.
- * @param getIsEndOfCodeLine A function that returns whether the given line is the end of a code line (which is possibly split over multiple lines).
+ * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
  * @param lineCount The number of lines in the document.
  */
-export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getIsEndOfCodeLine: (number) => boolean, lineCount) {
+export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lineCount) {
     let s = getLine(p.line);
     let nextChar = '';
     let nextPos: PositionNeg = null;
@@ -121,7 +117,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
         }
         let nextLine: string = getLine(nextPos.line);
         if (nextPos.character == nextLine.length) {
-            if ((nextPos.line == (lineCount - 1)) || getIsEndOfCodeLine(nextPos.line)) {
+            if ((nextPos.line == (lineCount - 1)) || !getDoesLineEndInOperator(nextPos.line)) {
                 endOfCodeLine = true;
             }
         }
@@ -135,7 +131,7 @@ export function getNextCharAndPos(p: PositionNeg, lookingForward: boolean, getLi
             nextPos = new PositionNeg(p.line, p.character);
         }
         if (nextPos.character == -1) {
-            if ((nextPos.line <= 0) || getIsEndOfCodeLine(nextPos.line - 1)) {
+            if ((nextPos.line <= 0) || !getDoesLineEndInOperator(nextPos.line - 1)) {
                 endOfCodeLine = true;
             }
         }
@@ -217,7 +213,7 @@ export function processRestOfExtendedLine(pos: PositionNeg, getLine: (number) =>
 export function extendSelection(line: number, getLine: (number) => string, lineCount: number) {
     let lc = new LineCache(getLine, lineCount);
     let getLineFromCache = function(x) { return (lc.getLineFromCache(x)); }
-    let getIsEndOfCodeLineFromCache = function(x) { return (lc.getIsEndOfCodeLineFromCache(x)); }
+    let getEndsInOperatorFromCache = function(x) { return (lc.getEndsInOperatorFromCache(x)); }
     let lookingForward = true;
     // poss[1] is the furthest point reached looking forward from the current line,
     // and poss[0] is the furthest point reached looking backward from the current line.
@@ -229,7 +225,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     // extending in that direction. Continue until there are no more unmatched brackets, 
     // and the we have reached the ends of the 'extended lines' both forwards and backwards.
     while (!flagAbort && (!flagFinish[0] || !flagFinish[1])) {
-        let { nextChar, nextPos, endOfCodeLine } = processRestOfExtendedLine(poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
+        let { nextChar, nextPos, endOfCodeLine } = processRestOfExtendedLine(poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
         if (isBracket(nextChar, true) || isBracket(nextChar, false)) {
             // Check which direction in which we need to look for the matching bracket.
             lookingForward = isBracket(nextChar, true);
@@ -239,7 +235,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
             // from the original line.
             poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
             poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
-            var { "nextPos": foundPos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getIsEndOfCodeLineFromCache, lookingForward, lineCount);
+            var { "nextPos": foundPos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
             poss[lookingForward ? 1 : 0] = foundPos;
         } else if (endOfCodeLine) {
             // Found the end of the extended line.
