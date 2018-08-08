@@ -61,7 +61,7 @@ function isBracket(c: string, forward: boolean) {
     }
 }
 
-export function cleanLine(text: string) {
+function cleanLine(text: string) {
     const cleaned = text.replace(/\s*\#.*/, ""); // Remove comments and preceeding spaces
     return (cleaned);
 }
@@ -84,7 +84,7 @@ function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean)
     }
 }
 
-export function doesLineEndInOperator(text: string) {
+function doesLineEndInOperator(text: string) {
     const endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
     const spacesOnlyIndex = text.search(/^\s*$/); // Space-only lines also counted.
     return ((0 <= endingOperatorIndex) || (0 <= spacesOnlyIndex));
@@ -102,7 +102,7 @@ export function doesLineEndInOperator(text: string) {
  * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
  * @param lineCount The number of lines in the document.
  */
-export function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lineCount) {
+function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lineCount) {
     const s = getLine(p.line);
     let nextPos: PositionNeg = null;
     let isEndOfCodeLine = false;
@@ -158,7 +158,7 @@ export function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (n
  * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
+function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
     let flagAbort = false;
     let unmatchedBrackets: string[] = [];
     var nextPos = pos;
@@ -195,7 +195,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
  * @param lookingForward true if looking toward the end of the document, false for looking toward the start.
  * @param lineCount The number of lines in the document.
  */
-export function findBracketOrLineTermination(pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
+function findBracketOrLineTermination(pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
     var { nextChar, nextPos, isEndOfCodeLine } = getNextChar(pos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
     while (!isEndOfCodeLine && !(isBracket(nextChar, true) || isBracket(nextChar, false))) {
         var { nextChar, nextPos, isEndOfCodeLine } = getNextChar(nextPos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
