@@ -91,7 +91,7 @@ export function doesLineEndInOperator(text: string) {
 }
 
 /**
- * From a given position, return the 'next' character, its position, and whether it is at the end of an 
+ * From a given position, return the 'next' character, its position, and whether it is at the termination of an 
  * 'extended' line.
  * The next character may be on a different line if at the start/end of a line, or it may be the
  * same character if at the start/end of a document.
@@ -187,7 +187,7 @@ export function findMatchingBracket(b: string, pos: PositionNeg, getLine: (numbe
 }
 
 /**
- * Finds the next bracket, or the termination of a line of code which is possibly split over multiple lines,
+ * Finds the next bracket, or the termination of a line of code (which is possibly split over multiple lines),
  * whichever comes first.
  * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
  * @param getLine A function that returns the string at the given line.
@@ -219,18 +219,18 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     // poss[1] is the furthest point reached looking forward from the current line,
     // and poss[0] is the furthest point reached looking backward from the current line.
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
-    let flagFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
+    let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     var flagAbort = false;
     // Check characters on current line. If a bracket, extend to the corresponding
     // matching bracket. If the termination of an 'extended line' is reached, we are finished
     // extending in that direction. Continue until there are no more unmatched brackets, 
     // and the we have reached the ends of the 'extended lines' both forwards and backwards.
-    while (!flagAbort && (!flagFinish[0] || !flagFinish[1])) {
+    while (!flagAbort && (!flagsFinish[0] || !flagsFinish[1])) {
         let { nextChar, nextPos, isEndOfCodeLine } = findBracketOrLineTermination(poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
         if (isBracket(nextChar, true) || isBracket(nextChar, false)) {
             // Check which direction in which we need to look for the matching bracket.
             lookingForward = isBracket(nextChar, true);
-            flagFinish[lookingForward ? 1 : 0] = false;
+            flagsFinish[lookingForward ? 1 : 0] = false;
             // Start looking for the corresponding matching bracket from the next character
             // or from the furthest point we had previously reached, whichever is further
             // from the original line.
@@ -241,7 +241,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
         } else if (isEndOfCodeLine) {
             // Found the end of the extended line.
             // Now, carry on checking from the furthest point reached in the opposite direction.
-            flagFinish[lookingForward ? 1 : 0] = true;
+            flagsFinish[lookingForward ? 1 : 0] = true;
             lookingForward = !lookingForward; 
         }
     }
