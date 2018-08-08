@@ -204,9 +204,9 @@ export function findBracketOrLineTermination(pos: PositionNeg, getLine: (number)
 }
 
 /**
- * Given a line number, determines the first and last lines required to 
- * include all the matching brackets and all the 'extended lines' (single code lines
- * split into multiple lines each ending in an operator) from that line.
+ * Given a line number, determines the first and last lines required to include all the matching brackets 
+ * and all the 'extended lines' (complete lines of code, possibly split into multiple lines
+ * each ending in an operator) from that line.
  * @param line The line of the document at which to start.
  * @param getLine A function that returns the string at the given line.
  * @param lineCount The number of lines in the document.
@@ -221,10 +221,11 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     var flagAbort = false;
-    // Check characters on current line. If a bracket, extend to the corresponding
-    // matching bracket. If the termination of an 'extended line' is reached, we are finished
+    // Check characters on current line, in direction given by lookingForward. 
+    // If a bracket is encountered, extend selection to the corresponding matching bracket.
+    // If the termination of an 'extended line' is reached, we are finished
     // extending in that direction. Continue until there are no more unmatched brackets, 
-    // and the we have reached the ends of the 'extended lines' both forwards and backwards.
+    // and we have reached the ends of the 'extended lines' both forwards and backwards.
     while (!flagAbort && (!flagsFinish[0] || !flagsFinish[1])) {
         let { nextChar, nextPos, isEndOfCodeLine } = findBracketOrLineTermination(poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
         if (isBracket(nextChar, true) || isBracket(nextChar, false)) {
