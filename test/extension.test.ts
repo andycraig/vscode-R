@@ -11,7 +11,6 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as myExtension from '../src/extension';
 import { extendSelection } from "../src/extendSelection";
-import { doOrTimeout } from '../src/util';
 
 // Defines a Mocha test suite to group tests of similar kind together
 suite("Extension Tests", () => {
@@ -336,11 +335,5 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(4, f, doc.length).startLine, 1);
         assert.equal(extendSelection(4, f, doc.length).endLine, 4);
     });
-
-    test("Timeout", () => {
-        let f = function(x: number, y: number) { return (x + y); };
-        let g = f.bind(null, 1, 2);
-        assert.equal(doOrTimeout(g, 1000, 400), 3);
-    })
 
 });

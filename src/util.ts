@@ -52,17 +52,3 @@ export function assertRTerminalCreation(rTerm): boolean {
         return true;
     }
 }
-
-export function doOrTimeout<T>(success: () => T, failure: T, ms: number): T {
-    let promiseA = new Promise((resolve, reject) => {
-        resolve(success);
-    });
-    let promiseB = new Promise((resolve, reject) => {
-        let wait = setTimeout(() => {
-            clearTimeout(wait);
-            resolve(failure);
-        }, ms);
-    });
-    //let result = Promise.race([promiseA, promiseB]).then((res) => { return (res) });
-    let result = Promise.race([promiseA, promiseB]).then(function(val) { return (val); });
-}
