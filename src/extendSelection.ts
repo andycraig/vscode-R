@@ -241,6 +241,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
             poss[lookingForward ? 1 : 0] = foundPos;
         } else if (isEndOfCodeLine) {
             // Found the end of the extended line.
+            poss[lookingForward ? 1 : 0] = nextPos;
             // Now, carry on checking from the furthest point reached in the opposite direction.
             flagsFinish[lookingForward ? 1 : 0] = true;
             lookingForward = !lookingForward; 
