@@ -25,3 +25,10 @@ polys = SpatialPolygonsDataFrame(
         mutate(severity_score = bin_severity(severity_percentage)) %>%
         mutate(incidence_score = bin_incidence(incidence_percentage)) %>%
         mutate(spores = get_spores(severity_score, incidence_score, field_area))
+    
+    # Anywhere other than first line.
+    
+     survey_data_with_clusters = survey_data_long %>%
+        mutate(cluster_id = associate_with_clusters(., cluster_poly, id_col)) %>%
+        # Next line raises warning about different attributes but okay.
+        left_join(cluster_df, by = setNames(id_col, "cluster_id")) # id_col is for y, "cluster_id" is for x.
