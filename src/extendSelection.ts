@@ -122,14 +122,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
         }
     }
     // Represent the start and end of the line with special characters.
-    let nextChar = '';
-    if (nextPos.character === s.length) {
-        nextChar = "EOL";
-    } else if (nextPos.character === -1) {
-        nextChar = "START_OF_LINE";
-    } else {
-        nextChar = getLine(nextPos.line)[nextPos.character];
-    }
+    let nextChar = getLine(nextPos.line)[nextPos.character];
     return ({ nextChar: nextChar, nextPos: nextPos, isEndOfCodeLine: isEndOfCodeLine, isEndOfFile: isEndOfFile });
 }
 
