@@ -91,8 +91,8 @@ function doesLineEndInOperator(text: string) {
 }
 
 /**
- * From a given position, return the 'next' character, its position, and whether it is at the termination of an 
- * 'extended' line.
+ * From a given position, return the 'next' character, its position, whether it is at the termination of an 
+ * 'extended' line, and whether it is the end of the file.
  * The next character may be on a different line if at the start/end of a line, or it may be the
  * same character if at the start/end of a document.
  * Considers the start and end of each line to be special distinct characters.
@@ -106,6 +106,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
     const s = getLine(p.line);
     let nextPos: PositionNeg = null;
     let isEndOfCodeLine = false;
+    let isEndOfFile = false;
     if (lookingForward) {
         if (p.character != s.length) {
             nextPos = new PositionNeg(p.line, p.character + 1);
@@ -113,6 +114,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
             nextPos = new PositionNeg(p.line + 1, -1);
         } else {
             // At end of document. Return same character.
+            isEndOfFile = true;
             nextPos = new PositionNeg(p.line, p.character);
         }
         const nextLine: string = getLine(nextPos.line);
@@ -128,6 +130,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
             nextPos = new PositionNeg(p.line - 1, getLine(p.line - 1).length - 1);
         } else {
             // At start of document. Return same charater.
+            isEndOfFile = true;
             nextPos = new PositionNeg(p.line, p.character);
         }
         if (nextPos.character === -1) {
@@ -145,62 +148,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
     } else {
         nextChar = getLine(nextPos.line)[nextPos.character];
     }
-    return ({ nextChar: nextChar, nextPos: nextPos, isEndOfCodeLine: isEndOfCodeLine });
-}
-
-/**
- * Finds the position of the match of a given bracket. Returns flagAbort = true if brackets are inconsistent
- * or start/end of file is reached.
- * @param b The bracket character to match.
- * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
- * @param getLine A function that returns the string at the given line.
- * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
- * @param lookingForward true if looking for a bracket toward the end of the document, false for looking toward the start.
- * @param lineCount The number of lines in the document.
- */
-function findMatchingBracket(b: string, pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
-    let flagAbort = false;
-    let unmatchedBrackets: string[] = [];
-    var nextPos = pos;
-    var nextChar = '';
-    var isEndOfCodeLine = false;
-    let possibleMatch = '';
-    while (!doBracketsMatch(possibleMatch, b) && !flagAbort) { 
-        var { nextChar, nextPos, isEndOfCodeLine } = getNextChar(nextPos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
-        if (isBracket(nextChar, lookingForward)) {
-            unmatchedBrackets.push(nextChar);
-        } else if (isBracket(nextChar, !lookingForward)) {
-           if (unmatchedBrackets.length === 0) {
-                possibleMatch = nextChar;
-            } else if (!doBracketsMatch(nextChar, unmatchedBrackets.pop())) {
-                flagAbort = true;
-            }
-        }
-        let atStartOfFile = !lookingForward && (nextPos.line === 0) && (isEndOfCodeLine);
-        let atEOF = lookingForward && (nextPos.line === (lineCount - 1)) && (isEndOfCodeLine);
-        if (atStartOfFile || atEOF) {
-            // Have hit the start or end of the file without finding the matching bracket.
-            flagAbort = true;
-        }
-    }
-    return ({ nextPos: nextPos, flagAbort: flagAbort });
-}
-
-/**
- * Finds the next bracket, or the termination of a line of code (which is possibly split over multiple lines),
- * whichever comes first.
- * @param pos The position at which to start looking. The first position AFTER this will be the first one checked.
- * @param getLine A function that returns the string at the given line.
- * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
- * @param lookingForward true if looking toward the end of the document, false for looking toward the start.
- * @param lineCount The number of lines in the document.
- */
-function findBracketOrLineTermination(pos: PositionNeg, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lookingForward: boolean, lineCount: number) {
-    var { nextChar, nextPos, isEndOfCodeLine } = getNextChar(pos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
-    while (!isEndOfCodeLine && !(isBracket(nextChar, true) || isBracket(nextChar, false))) {
-        var { nextChar, nextPos, isEndOfCodeLine } = getNextChar(nextPos, lookingForward, getLine, getDoesLineEndInOperator, lineCount);
-    }
-    return ({ nextChar: nextChar, nextPos: nextPos, isEndOfCodeLine: isEndOfCodeLine });
+    return ({ nextChar: nextChar, nextPos: nextPos, isEndOfCodeLine: isEndOfCodeLine, isEndOfFile: isEndOfFile });
 }
 
 /**
@@ -221,30 +169,50 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     var flagAbort = false;
+    //TODO Make unmatched elements be vectors of strings.
+    let unmatched = { 0: [], 1: []};
     // Check characters on current line, in direction given by lookingForward. 
     // If a bracket is encountered, extend selection to the corresponding matching bracket.
     // If the termination of an 'extended line' is reached, we are finished
     // extending in that direction. Continue until there are no more unmatched brackets, 
     // and we have reached the ends of the 'extended lines' both forwards and backwards.
     while (!flagAbort && (!flagsFinish[0] || !flagsFinish[1])) {
-        let { nextChar, nextPos, isEndOfCodeLine } = findBracketOrLineTermination(poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
-        if (isBracket(nextChar, true) || isBracket(nextChar, false)) {
-            // Check which direction in which we need to look for the matching bracket.
-            lookingForward = isBracket(nextChar, true);
-            flagsFinish[lookingForward ? 1 : 0] = false;
-            // Start looking for the corresponding matching bracket from the next character
-            // or from the furthest point we had previously reached, whichever is further
-            // from the original line.
-            poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
-            poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
-            var { "nextPos": foundPos, flagAbort} =  findMatchingBracket(nextChar, poss[lookingForward ? 1 : 0], getLineFromCache, getEndsInOperatorFromCache, lookingForward, lineCount);
-            poss[lookingForward ? 1 : 0] = foundPos;
-        } else if (isEndOfCodeLine) {
-            // Found the end of the extended line.
-            poss[lookingForward ? 1 : 0] = nextPos;
-            // Now, carry on checking from the furthest point reached in the opposite direction.
-            flagsFinish[lookingForward ? 1 : 0] = true;
-            lookingForward = !lookingForward; 
+        var { nextChar, nextPos, isEndOfCodeLine, isEndOfFile } = getNextChar(poss[lookingForward ? 1 : 0], lookingForward, getLine, getEndsInOperatorFromCache, lineCount);
+        if (isBracket(nextChar, lookingForward)) {
+            unmatched[lookingForward ? 1 : 0].push(nextChar);
+        } else if (isBracket(nextChar, !lookingForward)) {
+            if (unmatched[lookingForward ? 1 : 0].length === 0) {
+                // Check which direction in which we need to look for the matching bracket.
+                unmatched[lookingForward ? 1 : 0].push(nextChar);
+                //TODO Switch direction of lookingForward somehow.
+                flagsFinish[lookingForward ? 1 : 0] = false;
+                // Start looking for the corresponding matching bracket from the next character
+                // or from the furthest point we had previously reached, whichever is further
+                // from the original line.
+                //TODO One of these setting to poss not necessary.
+                poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
+                poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
+            } else {
+                } if (!doBracketsMatch(nextChar, unmatched[lookingForward ? 1 : 0].pop())) {
+                    flagAbort = true;
+                }
+        } else if (isEndOfCodeLine) { // Not a bracket.
+            if (unmatched[lookingForward ? 1 : 0].length === 0) {
+                // Found the end of the extended line.
+                poss[lookingForward ? 1 : 0] = nextPos;
+                // Now, carry on checking from the furthest point reached in the opposite direction.
+                flagsFinish[lookingForward ? 1 : 0] = true;
+                lookingForward = !lookingForward; 
+            }
+        } else if (isEndOfFile) {
+            //TODO Handle end of file.
+            // let atStartOfFile = !lookingForward && (nextPos.line === 0) && (isEndOfCodeLine);
+            //     let atEOF = lookingForward && (nextPos.line === (lineCount - 1)) && (isEndOfCodeLine);
+            //     if (atStartOfFile || atEOF) {
+            //         // Have hit the start or end of the file without finding the matching bracket.
+            //         flagAbort = true;
+            //     }
+            // }
         }
     }
     if (flagAbort) {
