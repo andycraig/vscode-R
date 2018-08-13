@@ -179,9 +179,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
                 // We have found everything we need to. Continue looking in the other direction.
                 flagsFinish[lookingForward ? 1 : 0] = true;
                 lookingForward = !lookingForward; 
-            }
-        } else if (isEndOfFile) {
-            if (unmatched[lookingForward ? 1 : 0].length != 0) {
+            } else if (isEndOfFile) {
                 // Have hit the start or end of the file without finding the matching bracket.
                 flagAbort = true;
             }
