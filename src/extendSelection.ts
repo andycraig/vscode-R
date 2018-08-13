@@ -66,24 +66,6 @@ function cleanLine(text: string) {
     return (cleaned);
 }
 
-/**
- * Returns which of two PositionNegs are 'further'.
- * @param p A PositionNeg to compare.
- * @param q A PositionNeg to compare.
- * @param lookingForward If true, PositionNegs closer to the end of the document are 'further'.
- */
-function getExtremalPos(p: PositionNeg, q: PositionNeg, lookingForward: boolean) {
-    if (lookingForward) {
-        if (p.line > q.line) return (p);
-        else if (p.line < q.line) return (q);
-        else return (p.character > q.character ? p : q)
-    } else {
-        if (p.line > q.line) return (q);
-        else if (p.line < q.line) return (p);
-        else return (p.character > q.character ? q : p)
-    }
-}
-
 function doesLineEndInOperator(text: string) {
     const endingOperatorIndex = text.search(/(,|\+|!|\$|\^|&|\*|-|=|:|\'|~|\||\/|\?|%.*%)(\s*|\s*\#.*)$/);
     const spacesOnlyIndex = text.search(/^\s*$/); // Space-only lines also counted.
@@ -168,51 +150,41 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     // and poss[0] is the furthest point reached looking backward from the current line.
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
-    var flagAbort = false;
+    let flagAbort = false;
     //TODO Make unmatched elements be vectors of strings.
     let unmatched = { 0: [], 1: []};
-    // Check characters on current line, in direction given by lookingForward. 
+    // Check characters in direction given by lookingForward. 
     // If a bracket is encountered, extend selection to the corresponding matching bracket.
-    // If the termination of an 'extended line' is reached, we are finished
+    // If the termination of a code line is reached, we are finished
     // extending in that direction. Continue until there are no more unmatched brackets, 
-    // and we have reached the ends of the 'extended lines' both forwards and backwards.
-    while (!flagAbort && (!flagsFinish[0] || !flagsFinish[1])) {
-        var { nextChar, nextPos, isEndOfCodeLine, isEndOfFile } = getNextChar(poss[lookingForward ? 1 : 0], lookingForward, getLine, getEndsInOperatorFromCache, lineCount);
+    // and we have reached the ends of the code lines both forwards and backwards.
+    while (!flagAbort && !(flagsFinish[0] && flagsFinish[1])) {
+        let { nextChar, nextPos, isEndOfCodeLine, isEndOfFile } = getNextChar(poss[lookingForward ? 1 : 0], lookingForward, getLineFromCache, getEndsInOperatorFromCache, lineCount);
+        poss[lookingForward ? 1 : 0] = nextPos;
         if (isBracket(nextChar, lookingForward)) {
             unmatched[lookingForward ? 1 : 0].push(nextChar);
         } else if (isBracket(nextChar, !lookingForward)) {
             if (unmatched[lookingForward ? 1 : 0].length === 0) {
-                // Check which direction in which we need to look for the matching bracket.
+                lookingForward = !lookingForward;
                 unmatched[lookingForward ? 1 : 0].push(nextChar);
-                //TODO Switch direction of lookingForward somehow.
                 flagsFinish[lookingForward ? 1 : 0] = false;
-                // Start looking for the corresponding matching bracket from the next character
-                // or from the furthest point we had previously reached, whichever is further
-                // from the original line.
-                //TODO One of these setting to poss not necessary.
-                poss[lookingForward ? 1 : 0] = getExtremalPos(poss[lookingForward ? 1: 0], nextPos, lookingForward);
-                poss[!lookingForward ? 1 : 0] = getExtremalPos(poss[!lookingForward ? 1: 0], nextPos, !lookingForward);
             } else {
-                } if (!doBracketsMatch(nextChar, unmatched[lookingForward ? 1 : 0].pop())) {
+                let needsToMatch = unmatched[lookingForward ? 1 : 0].pop();
+                if (!doBracketsMatch(nextChar, needsToMatch)) {
                     flagAbort = true;
                 }
-        } else if (isEndOfCodeLine) { // Not a bracket.
+            }
+        } else if (isEndOfCodeLine) { 
             if (unmatched[lookingForward ? 1 : 0].length === 0) {
-                // Found the end of the extended line.
-                poss[lookingForward ? 1 : 0] = nextPos;
-                // Now, carry on checking from the furthest point reached in the opposite direction.
+                // We have found everything we need to. Continue looking in the other direction.
                 flagsFinish[lookingForward ? 1 : 0] = true;
                 lookingForward = !lookingForward; 
             }
         } else if (isEndOfFile) {
-            //TODO Handle end of file.
-            // let atStartOfFile = !lookingForward && (nextPos.line === 0) && (isEndOfCodeLine);
-            //     let atEOF = lookingForward && (nextPos.line === (lineCount - 1)) && (isEndOfCodeLine);
-            //     if (atStartOfFile || atEOF) {
-            //         // Have hit the start or end of the file without finding the matching bracket.
-            //         flagAbort = true;
-            //     }
-            // }
+            if (unmatched[lookingForward ? 1 : 0].length != 0) {
+                // Have hit the start or end of the file without finding the matching bracket.
+                flagAbort = true;
+            }
         }
     }
     if (flagAbort) {
