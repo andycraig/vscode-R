@@ -53,8 +53,8 @@ function doBracketsMatch(a: string, b: string): boolean {
     return matches[a] === b;
 }
 
-function isBracket(c: string, forward: boolean) {
-    if (forward) {
+function isBracket(c: string, lookingForward: boolean) {
+    if (lookingForward) {
         return ((c === "(") || (c === "[") || (c === "{"));
     } else {
         return ((c === ")") || (c === "]") || (c === "}"));
@@ -164,8 +164,8 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     const getLineFromCache = function(x) { return (lc.getLineFromCache(x)); }
     const getEndsInOperatorFromCache = function(x) { return (lc.getEndsInOperatorFromCache(x)); }
     let lookingForward = true;
-    // poss[1] is the furthest point reached looking forward from the current line,
-    // and poss[0] is the furthest point reached looking backward from the current line.
+    // poss[1] is the furthest point reached looking forward from line,
+    // and poss[0] is the furthest point reached looking backward from line.
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     let flagAbort = false;
@@ -179,7 +179,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
             if (unmatched[lookingForward ? 1 : 0].length === 0) {
                 lookingForward = !lookingForward;
                 unmatched[lookingForward ? 1 : 0].push(nextChar);
-                flagsFinish[lookingForward ? 1 : 0] = false;
+                flagsFinish[lookingForward ? 1 : 0] = false; 
             } else {
                 let needsToMatch = unmatched[lookingForward ? 1 : 0].pop();
                 if (!doBracketsMatch(nextChar, needsToMatch)) {
@@ -188,7 +188,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
             }
         } else if (isEndOfCodeLine) { 
             if (unmatched[lookingForward ? 1 : 0].length === 0) {
-                // We have found everything we need to. Continue looking in the other direction.
+                // We have found everything we need to in this direction. Continue looking in the other direction.
                 flagsFinish[lookingForward ? 1 : 0] = true;
                 lookingForward = !lookingForward; 
             } else if (isEndOfFile) {
