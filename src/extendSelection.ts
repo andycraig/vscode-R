@@ -169,7 +169,7 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
     let poss = { 0: new PositionNeg(line, 0), 1: new PositionNeg(line, -1) };
     let flagsFinish = { 0: false, 1: false }; // 1 represents looking forward, 0 represents looking back.
     let flagAbort = false;
-    let unmatched = { 0: [], 1: []};
+    let unmatched = { 0: <string[]>[], 1: <string[]>[]};
     while (!flagAbort && !(flagsFinish[0] && flagsFinish[1])) {
         let { nextChar, nextPos, isEndOfCodeLine, isEndOfFile } = getNextChar(poss[lookingForward ? 1 : 0], lookingForward, getLineFromCache, getEndsInOperatorFromCache, lineCount);
         poss[lookingForward ? 1 : 0] = nextPos;
