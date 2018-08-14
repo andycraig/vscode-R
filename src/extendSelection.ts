@@ -146,11 +146,11 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
  *         print()       #            Line 4
  * 
  * Let's say the cursor is on Line 3. We proceed forward until we hit the ')'. We look for the match, which 
- * means looking backwards from the start of Line 2. We find the match, '(', on Line 2. We continue along 
+ * means looking backwards from the end of Line 2. We find the match, '(', on Line 2. We continue along 
  * Line 2 until we reach the start of the line. The previous line, Line 1, does not end in an operator,
- * so we have reached the completion of the code line. Now, we proceed forward again from the farthest point reached:
- * the ')' on Line 3. We encounter the end of the TEXT line, but it ends in an operator '%>%', so it is not
- * the end of the CODE line. Therefore, we continue onto Line 4. We encounter a '(' on Line 4, and continue 
+ * so we have reached the completion of the code line. Now, we proceed forward again from the farthest point reached
+ * in the other direction: the ')' on Line 3. We encounter the end of the TEXT line, but it ends in an operator '%>%', 
+ * so it is not the end of the CODE line. Therefore, we continue onto Line 4. We encounter a '(' on Line 4, and continue 
  * forward to find its match, which is the next character. Then we're at the end of Line 4, which doesn't
  * end in an operator. Now we've found the completions in both directions, so we're finished. The farthest lines
  * reached were Line 2 and Line 4, so those are the values returned.
