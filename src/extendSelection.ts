@@ -133,8 +133,8 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
  * If a bracket is encountered, look for the match of that bracket (possibly changing direction to do so),
  * from the farthest point reached in that direction. 
  * Once the bracket is found, proceed in the same direction looking for the completion of the code line.
- * Once the end of the code line has been matched, proceed in the other direction. Repeat until 
- * all encountered brackets are matched, and the completions of the code lines have been reached in 
+ * Once the end of the code line has been matched, proceed in the other direction. 
+ * Repeat until all encountered brackets are matched, and the completions of the code lines have been reached in 
  * both directions. The lines of the completions are the lines returned.
  * 
  * Example:
