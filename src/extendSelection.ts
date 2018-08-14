@@ -79,10 +79,10 @@ function doesLineEndInOperator(text: string) {
  * @param p The starting position.
  * @param lookingForward true if the 'next' character is toward the end of the document, false if toward the start of the document.
  * @param getLine A function that returns the string at the given line of the document.
- * @param getDoesLineEndInOperator A function that returns whether the given line ends in an operator.
+ * @param getEndsInOperator A function that returns whether the given line ends in an operator.
  * @param lineCount The number of lines in the document.
  */
-function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getDoesLineEndInOperator: (number) => boolean, lineCount) {
+function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) => string, getEndsInOperator: (number) => boolean, lineCount) {
     const s = getLine(p.line);
     let nextPos: PositionNeg = null;
     let isEndOfCodeLine = false;
@@ -99,7 +99,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
         }
         const nextLine: string = getLine(nextPos.line);
         if (nextPos.character === nextLine.length) {
-            if ((nextPos.line === (lineCount - 1)) || !getDoesLineEndInOperator(nextPos.line)) {
+            if ((nextPos.line === (lineCount - 1)) || !getEndsInOperator(nextPos.line)) {
                 isEndOfCodeLine = true;
             }
         }
@@ -114,7 +114,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
             nextPos = new PositionNeg(p.line, p.character);
         }
         if (nextPos.character === -1) {
-            if ((nextPos.line <= 0) || !getDoesLineEndInOperator(nextPos.line - 1)) {
+            if ((nextPos.line <= 0) || !getEndsInOperator(nextPos.line - 1)) {
                 isEndOfCodeLine = true;
             }
         }
@@ -202,4 +202,3 @@ export function extendSelection(line: number, getLine: (number) => string, lineC
         return ({ startLine: poss[0].line, endLine: poss[1].line });
     }
 }
-
