@@ -191,7 +191,7 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(7, f2, doc2.length).endLine, 7);
     })
 
-    test("Selecting large code example", () => {
+    test("Selecting large RStudio comparison", () => {
         let doc = `
         if (TRUE) {              #  1. RStudio sends lines 1-17; vscode-R sends 1-17
                                  #  2. RStudio sends lines 2-4; vscode-R sends 2-4
@@ -375,6 +375,82 @@ suite("Extension Tests", () => {
         assert.equal(extendSelection(3, f, doc.length).endLine, 4);
         assert.equal(extendSelection(4, f, doc.length).startLine, 0);
         assert.equal(extendSelection(4, f, doc.length).endLine, 4);
+    });
+
+
+    test("Selecting multi-line square bracket", () => {
+        let doc = `
+        a[1
+            ]
+        `.split("\n");
+        function f(i) {return (doc[i])}
+        assert.equal(extendSelection(1, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(1, f, doc.length).endLine, 2);
+        assert.equal(extendSelection(2, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(2, f, doc.length).endLine, 2);
+    });
+
+    test("Selecting ggplot plot", () => {
+        let doc = `
+        ggplot(aes(speed, dist), data = cars) +
+            geom_point()
+        `.split("\n");
+        function f(i) {return (doc[i])}
+        assert.equal(extendSelection(1, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(1, f, doc.length).endLine, 2);
+        assert.equal(extendSelection(2, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(2, f, doc.length).endLine, 2);
+    });
+
+    test("Selecting multi-line bracket with pipe", () => {
+        let doc = `
+        list(x = 1,
+            y = 2,
+            z = 3) %>%
+            print()
+        `.split("\n");
+        function f(i) {return (doc[i])}
+        assert.equal(extendSelection(1, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(1, f, doc.length).endLine, 4);
+        assert.equal(extendSelection(2, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(2, f, doc.length).endLine, 4);
+        assert.equal(extendSelection(3, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(3, f, doc.length).endLine, 4);
+        assert.equal(extendSelection(4, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(4, f, doc.length).endLine, 4);
+    });
+    
+    test("Selecting shorter RStudio comparison", () => {
+        let doc = `
+        (                     # 1. RStudio and vscode-R send lines 1-9
+            {                 # 2. RStudio and vscode-R send lines 2-8
+                (             # 3. RStudio and vscode-R send lines 3-7
+                    (         # 4. RStudio sends lines 3-7; vscode-R sends lines 4-6 
+                        1     # 5. RStudio sends lines 3-7; vscode-R sends line 5
+                    )         # 6. RStudio sends lines 3-7; vscode-R sends lines 4-6
+                )             # 7. RStudio and vscode-R send lines 3-7
+            }                 # 8. RStudio and vscode-R send lines 2-8
+        )                     # 9. RStudio and vscode-R send lines 1-9
+        `.split("\n");
+        function f(i) {return (doc[i])}
+        assert.equal(extendSelection(1, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(1, f, doc.length).endLine, 9);
+        assert.equal(extendSelection(2, f, doc.length).startLine, 2);
+        assert.equal(extendSelection(2, f, doc.length).endLine, 8);
+        assert.equal(extendSelection(3, f, doc.length).startLine, 3);
+        assert.equal(extendSelection(3, f, doc.length).endLine, 7);
+        assert.equal(extendSelection(4, f, doc.length).startLine, 4);
+        assert.equal(extendSelection(4, f, doc.length).endLine, 6);
+        assert.equal(extendSelection(5, f, doc.length).startLine, 5);
+        assert.equal(extendSelection(5, f, doc.length).endLine, 5);
+        assert.equal(extendSelection(6, f, doc.length).startLine, 4);
+        assert.equal(extendSelection(6, f, doc.length).endLine, 6);
+        assert.equal(extendSelection(7, f, doc.length).startLine, 3);
+        assert.equal(extendSelection(7, f, doc.length).endLine, 7);
+        assert.equal(extendSelection(8, f, doc.length).startLine, 2);
+        assert.equal(extendSelection(8, f, doc.length).endLine, 8);
+        assert.equal(extendSelection(9, f, doc.length).startLine, 0);
+        assert.equal(extendSelection(9, f, doc.length).endLine, 9);
     });
 
 });
