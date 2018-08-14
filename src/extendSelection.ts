@@ -126,7 +126,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
 /**
  * Given a line number, gets the text of that line and determines the first and last lines of the 
  * file required to make a complete line of code, by matching brackets and extending over
- * broken lines (single lines of code split into multipe text lines, joined by operators).
+ * broken lines (single lines of code split into multiple text lines, joined by operators).
  * 
  * The algorithm:
  * From the start of the given line, proceed forward looking for the end of the code line. 
