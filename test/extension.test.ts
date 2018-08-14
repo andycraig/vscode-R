@@ -429,7 +429,7 @@ suite("Extension Tests", () => {
                         1     # 5. RStudio sends lines 3-7; vscode-R sends line 5
                     )         # 6. RStudio sends lines 3-7; vscode-R sends lines 4-6
                 )             # 7. RStudio and vscode-R send lines 3-7
-            }                 # 8. RStudio and vscode-R send lines 2-8
+            }                 # 8. RStudio sends lines 1-9; vscode-R sends lines 2-8
         )                     # 9. RStudio and vscode-R send lines 1-9
         `.split("\n");
         function f(i) {return (doc[i])}
