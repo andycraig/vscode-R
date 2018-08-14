@@ -119,7 +119,7 @@ function getNextChar(p: PositionNeg, lookingForward: boolean, getLine: (number) 
             }
         }
     }
-    let nextChar = getLine(nextPos.line)[nextPos.character];
+    const nextChar = getLine(nextPos.line)[nextPos.character];
     return ({ nextChar: nextChar, nextPos: nextPos, isEndOfCodeLine: isEndOfCodeLine, isEndOfFile: isEndOfFile });
 }
 
