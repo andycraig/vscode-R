@@ -74,7 +74,7 @@ function doesLineEndInOperator(text: string) {
 
 /**
  * From a given position, return the 'next' character, its position in the document,
- * whether it is start/end of a code line broken over multiple text lines, and whether it is the 
+ * whether it is start/end of a code line (possibly broken over multiple text lines), and whether it is the 
  * start/end of the file. Considers the start and end of each line to be special distinct characters.
  * @param p The starting position.
  * @param lookingForward true if the 'next' character is toward the end of the document, false if toward the start of the document.
