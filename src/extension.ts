@@ -101,7 +101,8 @@ export function activate(context: ExtensionContext) {
             commands.executeCommand("cursorMove", { to: "wrappedLineEnd" });
         }
 
-        for (let line of selection.selectedTextArray) {
+        for (let i = 0; i < selection.selectedTextArray.length; i++) {
+            let line = selection.selectedTextArray[i];
             if (checkForComment(line)) {
                 continue;
             }
@@ -114,7 +115,17 @@ export function activate(context: ExtensionContext) {
                 }
                 line = rFunctionCall + line.trim() + ")".repeat(rFunctionName.length);
             }
-            term.sendText(line);
+            if (selection.selectedTextArray.length === 1) {
+                term.sendText(line);
+            } else {
+                if (i === 0) {
+                    term.sendText("\x1b[200~" + line);
+                } else if (i === selection.selectedTextArray.length - 1) {
+                    term.sendText(line + "\x1b[201~");
+                } else {
+                    term.sendText(line);
+                }
+            }
         }
     }
 
