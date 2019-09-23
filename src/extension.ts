@@ -2,7 +2,7 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import { isNull } from "util";
-import { commands, ExtensionContext, languages, Terminal, window } from "vscode";
+import { commands, ExtensionContext, languages, Terminal, window, Position, TextDocument, CompletionItem } from "vscode";
 import { buildPkg, documentPkg, installPkg, loadAllPkg, testPkg } from "./package";
 import { previewDataframe, previewEnvironment } from "./preview";
 import { createGitignore } from "./rGitignore";
@@ -11,6 +11,17 @@ import { checkForBlankOrComment, getSelection } from "./selection";
 import { config, delay } from "./util";
 
 const wordPattern = /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\<\>\/\s]+)/g;
+
+// Get with names(roxygen2:::default_tags())
+const roxygenTags = ["export", "exportClass", "exportMethod", "exportPattern", "import", "importClassesFrom",
+    "importFrom", "importMethodsFrom", "rawNamespace", "S3method", "useDynLib", "aliases",
+    "author", "backref", "concept", "describeIn", "description", "details",
+    "docType", "encoding", "evalRd", "example", "examples", "family",
+    "field", "format", "inherit", "inheritParams", "inheritDotParams", "inheritSection",
+    "keywords", "method", "name", "md", "noMd", "noRd",
+    "note", "param", "rdname", "rawRd", "references", "return",
+    "section", "seealso", "slot", "source", "template", "templateVar",
+    "title", "usage"].map((x) => new CompletionItem(x + " "));
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -149,6 +160,16 @@ export function activate(context: ExtensionContext) {
         term.show(focus !== "terminal");
     }
 
+    const roxygenTagCompletionProvider = languages.registerCompletionItemProvider('r', {
+        provideCompletionItems(document: TextDocument, position: Position) {
+            if (document.lineAt(position).text.substr(0, 2) === "#'") {
+                return roxygenTags;
+            } else {
+                return undefined;
+            };
+        }
+    }, '@'); // Trigger on '@'
+
     languages.setLanguageConfiguration("r", {
         wordPattern,
     });
@@ -177,6 +198,7 @@ export function activate(context: ExtensionContext) {
         commands.registerCommand("r.build", buildPkg),
         commands.registerCommand("r.document", documentPkg),
         window.onDidCloseTerminal(deleteTerminal),
+        roxygenTagCompletionProvider
     );
 
     function ToRStringLiteral(s: string, quote: string) {
