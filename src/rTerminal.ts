@@ -82,23 +82,25 @@ export async function runSelectionInTerm(term: Terminal, rFunctionName: string[]
         commands.executeCommand("cursorMove", { to: "wrappedLineFirstNonWhitespaceCharacter" });
     }
 
-    if (selection.selectedTextArray.length > 1 && config.get("bracketedPaste")) {
+    if (config.get("bracketedPaste")) {
+        term.sendText(selection.selectedTextArray.join("\n"));
         // Surround with ANSI control characters for bracketed paste mode
-        selection.selectedTextArray[0] = "\x1b[200~" + selection.selectedTextArray[0];
-        selection.selectedTextArray[selection.selectedTextArray.length - 1] += "\x1b[201~";
-    }
+        // selection.selectedTextArray[0] = "\x1b[200~" + selection.selectedTextArray[0];
+        // selection.selectedTextArray[selection.selectedTextArray.length - 1] += "\x1b[201~";
+    } else {
 
-    for (let line of selection.selectedTextArray) {
-        await delay(8); // Increase delay if RTerm can't handle speed.
+        for (let line of selection.selectedTextArray) {
+            await delay(8); // Increase delay if RTerm can't handle speed.
 
-        if (rFunctionName && rFunctionName.length) {
-            let rFunctionCall = "";
-            for (const feature of rFunctionName) {
-                rFunctionCall += feature + "(";
+            if (rFunctionName && rFunctionName.length) {
+                let rFunctionCall = "";
+                for (const feature of rFunctionName) {
+                    rFunctionCall += feature + "(";
+                }
+                line = rFunctionCall + line.trim() + ")".repeat(rFunctionName.length);
             }
-            line = rFunctionCall + line.trim() + ")".repeat(rFunctionName.length);
+            term.sendText(line);
         }
-        term.sendText(line);
     }
     setFocus(term);
 }
