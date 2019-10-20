@@ -83,7 +83,11 @@ export async function runSelectionInTerm(term: Terminal, rFunctionName: string[]
     }
 
     if (config.get("bracketedPaste")) {
-        term.sendText(selection.selectedTextArray.join("\n"));
+        let textToSend = selection.selectedTextArray.join("\n");
+        if (process.platform !== "win32") {
+            textToSend = "\x1b[200~" + textToSend + "\x1b[201~";
+        }
+        term.sendText(textToSend);
         // Surround with ANSI control characters for bracketed paste mode
         // selection.selectedTextArray[0] = "\x1b[200~" + selection.selectedTextArray[0];
         // selection.selectedTextArray[selection.selectedTextArray.length - 1] += "\x1b[201~";
