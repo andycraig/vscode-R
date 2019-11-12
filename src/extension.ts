@@ -8,7 +8,7 @@ import { previewDataframe, previewEnvironment } from "./preview";
 import { createGitignore } from "./rGitignore";
 import { chooseTerminal, chooseTerminalAndSendText, createRTerm, deleteTerminal,
          runSelectionInTerm } from "./rTerminal";
-import { globalenv, sessionStart } from "./session";
+import { attachActive, globalenv } from "./session";
 import { config, ToRStringLiteral } from "./util";
 
 const wordPattern = /(-?\d*\.\d\w*)|([^\`\~\!\@\$\^\&\*\(\)\=\+\[\{\]\}\\\|\;\:\'\"\,\<\>\/\s]+)/g;
@@ -85,10 +85,6 @@ export function activate(context: ExtensionContext) {
         runSelectionInTerm(callableTerminal, rFunctionName);
     }
 
-    function callSessionStart() {
-        sessionStart();
-    }
-
     languages.registerCompletionItemProvider("r", {
         provideCompletionItems(document: TextDocument, position: Position) {
             if (document.lineAt(position).text
@@ -139,7 +135,7 @@ export function activate(context: ExtensionContext) {
         commands.registerCommand("r.install", () => chooseTerminalAndSendText("devtools::install()")),
         commands.registerCommand("r.build", () => chooseTerminalAndSendText("devtools::build()")),
         commands.registerCommand("r.document", () => chooseTerminalAndSendText("devtools::document()")),
-        commands.registerCommand("r.sessionStart", callSessionStart),
+        commands.registerCommand("r.attachActive", attachActive),
         window.onDidCloseTerminal(deleteTerminal),
     );
 }
