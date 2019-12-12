@@ -1,65 +1,83 @@
 "use strict";
 
-import { Position, Range, window } from "vscode";
-import { TextDecoder } from "util";
+export enum FenceType {
+    None,
+    Start,
+    End,
+}
 
-const fenceRegex = /^```({r.*?})?.*/;
-
-function findFenceLine(line: number, forward: boolean, getLine: (line: number) => string) {
-    const delta = forward ? 1 : -1;
-    let currentLine = line;
-    let flagFence = false;
-    while((currentLine >= 0) && (currentLine < currentDocument.LENGTH) && MATCH REGEX) {
-        currentLine += delta;
-        const text = getLine(currentLine);
-        if (text.match(fenceRegex)[1]) {
-            flagFence = true;
-            break;
+export function getFenceType(text: string): FenceType {
+    const match = text.match(/^```({r.*?})?.*/);
+    if (match[0]) {
+        if (match[1]) {
+            return (FenceType.Start);
+        } else {
+            return (FenceType.End);
         }
-    }
-    if (flagFence) {
-        return currentLine;
     } else {
-        NOT FOUND CASE - ERROR
+        return (FenceType.None);
     }
 }
 
-function getChunksFrom(startLine: number, endLine: number, getLine: (line: number) => string) {
-    const chunkLines = [];
-    let currentLine = line + 1;
-    while (currentLine > endLine) {
-        const nextStartFenceLine = findFenceLine(currentLine, true, getLine);
-        const currentLine = findFenceLine(nextStartFenceLine, true, getLine);
-        if(IS VALID) {
-            chunkLines.push( startLine: nextStartFenceLine, endLine: currentLine });
-        }   
-    }
-    return chunkLines;
-}
+// function findFenceLine(line: number, forward: boolean, docLength: number, getLine: (line: number) => string) {
+//     const delta = forward ? 1 : -1;
+//     let currentLine = line;
+//     let fenceType = FenceType.None;
+//     while((currentLine >= 0) && (currentLine < docLength)) {
+//         const text = getLine(line);
+//         fenceType = getFenceType(text);
+//         if (fenceType !== FenceType.None) {
+//             break;
+//         }
+//         currentLine += delta;
+//     }
+//     return { line: currentLine, fenceType: fenceType };
+// }
 
-function getChunks(startLine: number, endLine: number, getLine: (line: number) => string) {
-    let chunkLines;
-    const previousFenceLine = findFenceLine(line, false);
-    if (isRChunkFence(previousFenceLine)) { // In chunk
-        chunkLines = getChunksFrom(previousFenceLine, endLine, getLine);
-    } else { // Not in chunk
-        chunkLines = getChunksFrom(nextFenceLine, endLine, getLine);
-    }
-    return chunkLines;
-}
+// function getChunksFrom(startLine: number, endLine: number, docLength: number, getLine: (line: number) => string) {
+//     const chunkLines = [];
+//     let line = startLine;
+//     let fenceType = FenceType.None;
+//     while (line > endLine) {
+//         { line, fenceType } = findFenceLine(line, true, docLength, getLine);
+//         const chunkStartLine = line;
+//         const startFenceType = fenceType;
+//         { line, fenceType } = findFenceLine(line, true, docLength, getLine);
+//         if (startFenceType === FenceType.Start && fenceType === FenceType.End) {
+//             if (line - chunkStartLine > 1) {
+//                 chunkLines.push({ startLine: chunkStartLine + 1, endLine: line - 1 });
+//             }
+//         }
+//     }
+//     return (chunkLines);
+// }
 
-funtion getCurrentChunk(line: number) {
-    getChunks(line, -1);
-}
+// function getChunks(startLine: number, endLine: number, getLine: (line: number) => string) {
+//     let chunkLines;
+//     // TODO endLine should be doc length
+//     const { line, fenceType } = findFenceLine(startLine, false, endLine, getLine);
+//     if (fenceType === FenceType.Start) {
+//         // In chunk
+//         chunkLines = getChunksFrom(line, endLine, getLine);
+//     } else {
+//         // Not in chunk
+//         chunkLines = getChunksFrom(line + 1, endLine, getLine);
+//     }
+//     return chunkLines;
+// }
 
-function getAllChunks(line: number) {
-    getChunks(0, currentDocument.LINES);
-}
+// function getCurrentChunk(line: number) {
+//     getChunks(line, -1);
+// }
 
-function getAllChunksAboveNotIncludingCurrent(line: number) {
-    getChunks(0, line);
-}
+// function getAllChunks(line: number) {
+//     getChunks(0, currentDocument.LINES);
+// }
 
-function getAllChunksBelowIncludingCurrent(line: number) {
-    getChunks(line, currentDocument.LINES);
-}
+// function getAllChunksAboveNotIncludingCurrent(line: number) {
+//     getChunks(0, line);
+// }
+
+// function getAllChunksBelowIncludingCurrent(line: number) {
+//     getChunks(line, currentDocument.LINES);
+// }
