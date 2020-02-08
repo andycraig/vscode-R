@@ -109,9 +109,12 @@
         "path": "./syntax/Rd (R Documentation).tmLanguage"
       },
       {
-        "scopeName": "meta.paragraph.markdown",
-        "path": "./syntax/RMarkdown Inline.tmLanguage",
-        "injectTo": ["meta.paragraph.markdown"]
+        "scopeName": "rmd.inline",
+        "path": "./syntax/Markdown Inline.tmLanguage",
+        "injectTo": ["text.html.markdown"],
+        "embeddedLanguages": {
+          "meta.embedded.block.r": "r"
+        }
       },
       {
         "scopeName": "text.html.markdown.redcarpet",

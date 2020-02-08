@@ -261,51 +261,6 @@
 				</dict>
 			</dict>
 		</dict>
-		<key>inline</key>
-		<dict>
-			<key>patterns</key>
-			<array>
-				<dict>
-					<key>include</key>
-					<string>#code-inline-r</string>
-				</dict>
-			</array>
-			<key>repository</key>
-			<dict>
-				<key>code-inline-r</key>
-				<dict>
-					<key>begin</key>
-					<string>(`[r|R][ ]+)</string>
-					<key>beginCaptures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.raw.markdown</string>
-						</dict>
-					</dict>
-					<key>end</key>
-					<string>(`)</string>
-					<key>endCaptures</key>
-					<dict>
-						<key>1</key>
-						<dict>
-							<key>name</key>
-							<string>punctuation.definition.raw.rmarkdown</string>
-						</dict>
-					</dict>
-					<key>contentName</key>
-					<string>meta.embedded.block.r</string>
-					<key>patterns</key>
-					<array>
-						<dict>
-							<key>include</key>
-							<string>source.r</string>
-						</dict>
-					</array>
-				</dict>
-			</dict>
-		</dict>
 	</dict>
 	<key>scopeName</key>
 	<string>text.html.markdown.redcarpet</string>
