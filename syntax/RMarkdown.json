@@ -1,0 +1,16 @@
+{
+    "name": "R Markdown",
+    "scopeName": "text.html.markdown.rmarkdown",
+    "fileTypes": [
+        "Rmd",
+        "rmd"
+    ],
+    "patterns": [
+        {
+            "include": "text.html.markdown.redcarpet"
+        },
+        {
+            "include": "text.html.markdown"
+        }
+    ]
+}

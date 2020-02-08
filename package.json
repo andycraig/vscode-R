@@ -110,6 +110,10 @@
       },
       {
         "language": "rmd",
+        "scopeName": "text.html.markdown.rmarkdown",
+        "path": "./syntax/RMarkdown.json"
+      },
+      {
         "scopeName": "text.html.markdown.redcarpet",
         "path": "./syntax/Markdown Redcarpet.tmLanguage"
       }

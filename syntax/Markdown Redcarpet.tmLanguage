@@ -4,13 +4,9 @@
 <dict>
 	<key>fileTypes</key>
 	<array>
-		<string>Rmd</string>
-		<string>rmd</string>
 	</array>
-	<key>keyEquivalent</key>
-	<string>^~M</string>
-	<key>name</key>
-	<string>Markdown Redcarpet</string>
+	<key>injectionSelector</key>
+	<string>L:text.html.markdown</string>
 	<key>patterns</key>
 	<array>
 		<dict>
