@@ -7,9 +7,6 @@
     ],
     "patterns": [
         {
-            "include": "text.html.markdown.redcarpet"
-        },
-        {
             "include": "text.html.markdown"
         }
     ]

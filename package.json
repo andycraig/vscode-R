@@ -79,8 +79,7 @@
         "aliases": [
           "R Markdown",
           "r markdown"
-        ],
-        "configuration": "./r-configuration.json"
+        ]
       }
     ],
     "snippets": [
@@ -109,9 +108,14 @@
         "path": "./syntax/Rd (R Documentation).tmLanguage"
       },
       {
+        "language": "rmd",
+        "scopeName": "text.html.markdown.rmarkdown",
+        "path": "./syntax/RMarkdown.json"
+      },
+      {
         "scopeName": "rmd.inline",
         "path": "./syntax/Markdown Inline.tmLanguage",
-        "injectTo": ["text.html.markdown"],
+        "injectTo": ["text.html.markdown.rmarkdown"],
         "embeddedLanguages": {
           "meta.embedded.block.r": "r"
         }
@@ -119,7 +123,7 @@
       {
         "scopeName": "text.html.markdown.redcarpet",
         "path": "./syntax/Markdown Redcarpet.tmLanguage",
-        "injectTo": ["text.html.markdown"],
+        "injectTo": ["text.html.markdown.rmarkdown"],
         "embeddedLanguages": {
 					"meta.embedded.block.html": "html",
 					"source.js": "javascript",
