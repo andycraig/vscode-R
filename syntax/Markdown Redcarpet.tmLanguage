@@ -90,7 +90,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.c</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -106,7 +106,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.coffee</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -122,12 +122,12 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.cpp</string>
 					<key>patterns</key>
 					<array>
 						<dict>
 							<key>include</key>
-							<string>source.c++</string>
+							<string>source.cpp</string>
 						</dict>
 					</array>
 				</dict>
@@ -138,7 +138,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.elixer</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -154,7 +154,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.haml</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -170,7 +170,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.html</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -186,7 +186,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.js</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -202,7 +202,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>source.r.embedded.rmarkdown</string>
+					<string>meta.embedded.block.r</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -218,7 +218,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.ruby</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -234,7 +234,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.shell</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -250,7 +250,7 @@
 					<key>end</key>
 					<string>(^|\G)([`]{3})($|\z)</string>
 					<key>name</key>
-					<string>markup.raw.block.markdown.fenced</string>
+					<string>meta.embedded.block.yaml</string>
 					<key>patterns</key>
 					<array>
 						<dict>
@@ -291,11 +291,11 @@
 						<key>1</key>
 						<dict>
 							<key>name</key>
-							<string>punctuation.definition.raw.markdown</string>
+							<string>punctuation.definition.raw.rmarkdown</string>
 						</dict>
 					</dict>
-					<key>name</key>
-					<string>source.r.embedded.rmarkdown</string>
+					<key>contentName</key>
+					<string>meta.embedded.block.r</string>
 					<key>patterns</key>
 					<array>
 						<dict>
